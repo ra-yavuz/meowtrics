@@ -1,0 +1,39 @@
+Source: meowtrics
+Section: utils
+Priority: optional
+Maintainer: Ramazan Yavuz <yavuzramazan1994@gmail.com>
+Build-Depends: debhelper-compat (= 13), cargo, rustc (>= 1.75), pkg-config, libssl-dev, libdbus-1-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/ra-yavuz/meowtrics
+Vcs-Git: https://github.com/ra-yavuz/meowtrics.git
+Vcs-Browser: https://github.com/ra-yavuz/meowtrics
+Rules-Requires-Root: no
+
+Package: meowtrics
+Architecture: amd64 arm64
+Depends: ${misc:Depends}, ${shlibs:Depends}, libc6, libssl3, libdbus-1-3
+Recommends: noto-fonts-emoji | fonts-noto-color-emoji
+Description: animated emoji tray pet that reacts to your machine's vital signs
+ meowtrics shows a small animated emoji in your system tray
+ (StatusNotifierItem) that morphs based on live sensor readings: CPU, RAM,
+ thermals, battery, disk, network, and more. On hover it gossips about your
+ machine using a weighted message database.
+ .
+ The KDE Plasma 6 frontend gets a richer popup with prose messages and per
+ sensor breakdowns. Other desktops (GNOME with AppIndicator, XFCE, Cinnamon,
+ Budgie, MATE, LXQt, Sway+waybar, etc.) get the tray icon and tooltip via the
+ StatusNotifierItem standard. Tiling-WM users can consume the daemon's JSON
+ output as a waybar/polybar/i3blocks custom module.
+ .
+ The default install ships only Unicode emoji (rendered via the user's system
+ emoji font); optional companion packs (blobcat, neocat, openmoji, fluentui,
+ twemoji) are available as separate packages with their own licenses.
+ .
+ DISCLAIMER: provided AS IS, WITHOUT WARRANTY OF ANY KIND. The author is
+ not liable for any damage to hardware, data, or system. By installing and
+ running this software you accept full responsibility. See
+ /usr/share/doc/meowtrics/README.md for the full disclaimer.
+ .
+ This is a personal open-source project, deliberately separate from the
+ author's professional work. Provided free for personal use, with no support
+ guarantee or commercial relationship implied.

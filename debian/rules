@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/meowtrics
+
+override_dh_auto_test:
+	# tests run in CI; skip in package build for portability

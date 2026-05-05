@@ -1,0 +1,11 @@
+{
+  "_comment": "Drop this snippet into your ~/.config/waybar/config under \"modules-right\" or wherever you want the meowtrics emoji to appear. Then add a matching CSS rule in style.css for #custom-meowtrics if you want padding or color tweaks.",
+
+  "custom/meowtrics": {
+    "exec": "meowtrics json",
+    "interval": 5,
+    "return-type": "json",
+    "tooltip": true,
+    "format": "{}"
+  }
+}

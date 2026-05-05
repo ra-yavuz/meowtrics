@@ -1,0 +1,7 @@
+/target
+/dist
+*.deb
+*.plasmoid
+**/*.rs.bk
+.idea/
+.vscode/

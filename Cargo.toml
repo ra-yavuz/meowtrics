@@ -1,0 +1,51 @@
+[package]
+name = "meowtrics"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Ramazan Yavuz <yavuzramazan1994@gmail.com>"]
+description = "Animated emoji system tray pet that reacts to your machine's vital signs"
+license = "MIT"
+repository = "https://github.com/ra-yavuz/meowtrics"
+homepage = "https://ra-yavuz.github.io/meowtrics/"
+readme = "README.md"
+keywords = ["tray", "system-monitor", "kde", "plasma", "emoji"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "meowtrics"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime, single-threaded flavour: tray daemons need very little parallelism.
+tokio = { version = "1", features = ["rt", "macros", "time", "signal", "fs", "process", "sync"] }
+# StatusNotifierItem (modern tray protocol). Works on KDE, GNOME (with AppIndicator ext),
+# XFCE 4.16+, Cinnamon, Budgie, MATE, LXQt, Sway/waybar, etc.
+ksni = "0.3"
+# D-Bus client for cross-process signalling (so the KDE plasmoid can talk to the daemon).
+zbus = { version = "4", default-features = false, features = ["tokio"] }
+# Config + state serialization.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+# Logging.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+# Error handling.
+anyhow = "1"
+thiserror = "1"
+# Argument parsing for the small CLI surface (status, pause, refresh, sensors, daemon).
+clap = { version = "4", features = ["derive"] }
+# XDG dirs (config, cache, data) following the spec.
+directories = "5"
+# Weighted random choice for the message bag.
+rand = "0.8"
+# HTTP for the daily messages.json refresh. rustls keeps the binary self-contained.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

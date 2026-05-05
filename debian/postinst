@@ -1,0 +1,43 @@
+#!/bin/sh
+# postinst for meowtrics
+set -e
+
+case "$1" in
+    configure)
+        # Reload user units so `systemctl --user enable meowtrics` works
+        # without the user having to log out and back in.
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload >/dev/null 2>&1 || true
+        fi
+
+        # Print the disclaimer at install time. Users see this before they
+        # ever run the daemon, in addition to the README, --help output, and
+        # daemon startup log.
+        cat <<'EOF'
+
+meowtrics installed.
+
+DISCLAIMER: meowtrics is provided AS IS, WITHOUT WARRANTY OF ANY KIND.
+The author is not liable for any damage to hardware, data, or system.
+By running this software you accept full responsibility.
+
+This is a personal open-source project, free for personal use, with no
+support guarantee. Full disclaimer: /usr/share/doc/meowtrics/README.md
+
+To start: systemctl --user enable --now meowtrics
+KDE Plasma 6 widget: right-click your panel, Add Widgets, search "meowtrics"
+
+EOF
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
+exit 0

@@ -1,0 +1,8 @@
+meowtrics (0.1.0-1) unstable; urgency=low
+
+  * Initial release.
+    - Daemon that reads CPU and renders state through a tray emoji.
+    - Foundation for the wider sensor lineup, KDE plasmoid frontend,
+      and weighted message database.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 14:00:00 +0000

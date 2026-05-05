@@ -1,0 +1,23 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "yavuzramazan1994@gmail.com",
+                "Name": "Ramazan Yavuz"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Animated emoji tray pet that reacts to your machine's vital signs. Provided AS IS, without warranty.",
+        "Icon": "face-smile",
+        "Id": "com.ra-yavuz.meowtrics",
+        "License": "MIT",
+        "Name": "meowtrics",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "0.1.0",
+        "Website": "https://ra-yavuz.github.io/meowtrics/"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-NotificationArea": "true"
+}

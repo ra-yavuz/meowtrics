@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>meowtrics - animated emoji tray pet that reacts to your machine</title>
+<meta name="description" content="meowtrics: a small animated emoji that lives in your system tray and gossips about your machine. Cat by default, sweats when CPU is hot, naps when you are idle. KDE Plasma, GNOME, XFCE, Sway, i3 supported. By Ramazan Yavuz.">
+<meta name="author" content="Ramazan Yavuz">
+<meta name="keywords" content="meowtrics, system tray, kde plasmoid, plasma 6, gnome appindicator, sway waybar, i3blocks, system monitor, emoji widget, sysadmin tray, blobcat, linux tray">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://ra-yavuz.github.io/meowtrics/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="meowtrics - animated emoji tray pet for Linux">
+<meta property="og:description" content="A small animated emoji that lives in your system tray and gossips about your machine.">
+<meta property="og:url" content="https://ra-yavuz.github.io/meowtrics/">
+<meta property="og:site_name" content="ra-yavuz">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="meowtrics - animated emoji tray pet for Linux">
+<meta name="twitter:description" content="A small animated emoji that lives in your system tray and gossips about your machine.">
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #5e5e5e;
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --line: #d8d4cc;
+    --code-bg: #ebe7e0;
+    --link: #0a4ca8;
+    --apt-bg: #eef2f8;
+    --warn-bg: #fff7d6;
+    --warn-fg: #5a4500;
+    --warn-line: #e8d36b;
+    --info-bg: #eaf6ee;
+    --info-line: #7cc28d;
+    --info-fg: #1f5430;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #ececec;
+      --muted: #9a9a9a;
+      --bg: #1c1d20;
+      --card: #25272b;
+      --line: #353941;
+      --code-bg: #14151a;
+      --link: #7cb0ff;
+      --apt-bg: #1f242d;
+      --warn-bg: #3a2e00;
+      --warn-fg: #f6e2a4;
+      --warn-line: #6a5500;
+      --info-bg: #1c2a1f;
+      --info-line: #4f8a5d;
+      --info-fg: #b6d8be;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--fg); background: var(--bg);
+    line-height: 1.55;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  .crumb { font-size: 0.86rem; color: var(--muted); margin: 0 0 18px; }
+  h1 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.005em; }
+  p.tag { color: var(--muted); margin: 0 0 18px; font-size: 1rem; max-width: 60ch; }
+  .demo {
+    text-align: center; font-size: 64px; line-height: 1; margin: 18px 0 24px;
+    user-select: none;
+  }
+  h2 {
+    font-size: 1rem; margin: 36px 0 10px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: var(--code-bg); padding: 1px 5px; border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg); padding: 12px 14px; border-radius: 6px;
+    border: 1px solid var(--line); overflow-x: auto;
+    font-size: 0.86rem; line-height: 1.55; margin: 0;
+  }
+  pre code { background: transparent; padding: 0; }
+  .links-row a { margin-right: 14px; font-size: 0.95rem; }
+  .apt-section {
+    background: var(--apt-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 18px;
+  }
+  .apt-section h2 { margin-top: 0; }
+  .warn {
+    background: var(--warn-bg); color: var(--warn-fg);
+    border-left: 4px solid var(--warn-line);
+    padding: 12px 16px; border-radius: 4px;
+    font-size: 0.9rem; margin: 12px 0 0;
+  }
+  .info {
+    background: var(--info-bg); color: var(--info-fg);
+    border-left: 4px solid var(--info-line);
+    padding: 12px 16px; border-radius: 4px;
+    font-size: 0.9rem; margin: 12px 0 0;
+  }
+  table.matrix { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  table.matrix th, table.matrix td {
+    text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.matrix th { color: var(--muted); font-weight: 600; }
+  footer {
+    margin-top: 56px; color: var(--muted); font-size: 0.85rem;
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "meowtrics",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Linux",
+  "description": "A small animated emoji tray pet that reacts to your machine's vital signs (CPU, RAM, thermal, battery, disk, network) and gossips about them on hover.",
+  "url": "https://ra-yavuz.github.io/meowtrics/",
+  "downloadUrl": "https://github.com/ra-yavuz/meowtrics/releases",
+  "softwareVersion": "0.1.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": {
+    "@type": "Person",
+    "name": "Ramazan Yavuz",
+    "url": "https://ra-yavuz.github.io/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+</head>
+<body>
+<main>
+  <p class="crumb">
+    <a href="https://ra-yavuz.github.io/">ra-yavuz</a> &rsaquo; meowtrics
+  </p>
+
+  <h1>meowtrics</h1>
+  <p class="tag">
+    A small animated emoji that lives in your system tray and gossips about
+    your machine. Cat-shaped by default, sweats when the CPU is hot, naps when
+    you're idle. Hover reveals a one-line take on what's going on.
+  </p>
+
+  <div class="demo" id="demo">🐈</div>
+
+  <div class="links-row">
+    <a href="https://github.com/ra-yavuz/meowtrics">source</a>
+    <a href="https://github.com/ra-yavuz/meowtrics/releases">releases</a>
+    <a href="#install-quick">install</a>
+    <a href="#sensors">sensors</a>
+    <a href="#messages">messages</a>
+    <a href="https://github.com/ra-yavuz/meowtrics/issues">issues</a>
+  </div>
+
+  <div class="info">
+    <strong>Personal open-source project.</strong> meowtrics is provided free
+    for personal use, with no support guarantee, no SLA, and no commercial
+    relationship implied. Deliberately separate from the author's professional
+    work at <a href="https://ramazan-yavuz.tr">ramazan-yavuz.tr</a>.
+  </div>
+
+  <h2 id="install-quick">Quick install</h2>
+  <section class="apt-section">
+    <p>One command. Detects your distro and picks the best available path.</p>
+    <pre><code>curl -fsSL https://ra-yavuz.github.io/meowtrics/get.sh | sudo bash</code></pre>
+    <p style="color: var(--muted); font-size: 0.92rem; margin-bottom: 0;">
+      Prints the disclaimer and asks for consent before doing anything. Set
+      <code>MEOWTRICS_YES=1</code> to skip the prompt for unattended installs.
+      Other install paths (manual apt setup, single <code>.deb</code>, from
+      source) appear further down.
+    </p>
+  </section>
+
+  <h2>What it does</h2>
+  <p>
+    A tiny daemon reads your system's vital signs from the kernel
+    (<code>/proc</code>, <code>/sys</code>, no root needed), runs each through
+    a debounced state machine, and renders a small animated emoji in your
+    system tray that reflects the most interesting state at any given moment.
+    Hover and a one-line message tells you what it thinks is going on.
+  </p>
+  <p>
+    On <strong>KDE Plasma 6</strong> it ships as a native plasmoid with a
+    richer popup. On other desktops (GNOME with AppIndicator, XFCE, Cinnamon,
+    Budgie, MATE, LXQt) it shows up as a StatusNotifierItem tray icon. On
+    tiling window managers (Sway, Hyprland, i3, bspwm) it can be consumed as a
+    custom module by waybar, polybar, or i3blocks.
+  </p>
+
+  <h2 id="sensors">Sensors (planned for v0.1 .. v0.2)</h2>
+  <table class="matrix">
+    <tr><th>Sensor</th><th>Source</th><th>Example states</th></tr>
+    <tr><td>CPU load</td><td><code>/proc/stat</code></td><td>idle 😺 / busy 😼 / pegged 🥵</td></tr>
+    <tr><td>RAM</td><td><code>/proc/meminfo</code></td><td>fine / high / critical 🫨</td></tr>
+    <tr><td>Swap</td><td><code>/proc/meminfo</code></td><td>none / thrashing 💀</td></tr>
+    <tr><td>Thermal</td><td><code>/sys/class/thermal</code></td><td>cool 🥶 / warm / hot 🥵 / throttling 🐌🔥</td></tr>
+    <tr><td>Fan</td><td><code>/sys/class/hwmon</code></td><td>off / spinning 🌀 / max</td></tr>
+    <tr><td>Battery</td><td><code>/sys/class/power_supply</code></td><td>charging 🔌 / discharging / low 🪫 / full 🔋</td></tr>
+    <tr><td>Disk usage</td><td><code>statvfs</code></td><td>fine / filling 🤰 / nearly full ⚠️</td></tr>
+    <tr><td>Disk IO</td><td><code>/proc/diskstats</code></td><td>idle 😴 / busy / grinding 🐢</td></tr>
+    <tr><td>Network</td><td><code>/proc/net/dev</code></td><td>idle / active / saturated 📡</td></tr>
+    <tr><td>GPU</td><td><code>/sys/class/drm</code>, <code>nvidia-smi</code></td><td>idle / busy / hot 🔥</td></tr>
+    <tr><td>Brightness</td><td><code>/sys/class/backlight</code></td><td>dark 🌙 / bright ☀️</td></tr>
+    <tr><td>Webcam / mic</td><td><code>pactl</code>, <code>/proc/*/fd</code></td><td>idle / in use 👀 🎤</td></tr>
+    <tr><td>Idle / time</td><td>D-Bus, <code>/proc/uptime</code></td><td>active / away 😴 / 2am 🦉</td></tr>
+  </table>
+
+  <h2 id="messages">Messages</h2>
+  <p>
+    Each sensor state has a set of emoji and a weighted bag of message
+    templates. The widget picks one per tick. Templates use placeholders like
+    <code>{value}</code> and <code>{duration}</code>. The database is plain
+    JSON, hand-editable, and the widget loads three layers in order:
+  </p>
+  <ul>
+    <li>bundled defaults at <code>/usr/share/meowtrics/messages.json</code></li>
+    <li>daily auto-refresh from this site (<code>messages.json</code>)</li>
+    <li>your overrides at <code>~/.config/meowtrics/messages.json</code></li>
+  </ul>
+  <p>
+    Contributions to the message bank are welcome via pull request to
+    <a href="https://github.com/ra-yavuz/meowtrics/blob/main/data/messages.json">data/messages.json</a>.
+    More cats, funnier lines, more nuanced states.
+  </p>
+
+  <h2>Install via apt repository</h2>
+  <section class="apt-section">
+    <p>
+      Add the
+      <a href="https://ra-yavuz.github.io/apt/">ra-yavuz apt repository</a>
+      and install with apt. Auto-updates via <code>apt upgrade</code>.
+    </p>
+    <pre><code>sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://ra-yavuz.github.io/apt/pubkey.gpg \
+  | sudo tee /etc/apt/keyrings/ra-yavuz.gpg > /dev/null
+
+echo "deb [signed-by=/etc/apt/keyrings/ra-yavuz.gpg] https://ra-yavuz.github.io/apt stable main" \
+  | sudo tee /etc/apt/sources.list.d/ra-yavuz.list
+
+sudo apt update
+sudo apt install meowtrics
+systemctl --user enable --now meowtrics</code></pre>
+  </section>
+
+  <h2>Install single .deb from GitHub Releases</h2>
+  <p>
+    Grab the latest <code>.deb</code> directly. No automatic updates.
+  </p>
+  <pre><code>wget https://github.com/ra-yavuz/meowtrics/releases/latest/download/meowtrics_0.1.0-1_amd64.deb
+sudo apt install ./meowtrics_0.1.0-1_amd64.deb
+systemctl --user enable --now meowtrics</code></pre>
+
+  <h2>Install from source</h2>
+  <p>Any distro with Rust 1.75+ and systemd:</p>
+  <pre><code>git clone https://github.com/ra-yavuz/meowtrics.git
+cd meowtrics
+make
+sudo make install
+systemctl --user enable --now meowtrics</code></pre>
+
+  <h2>KDE Plasma 6 widget</h2>
+  <p>
+    The package ships the plasmoid alongside the daemon. After install,
+    right-click your panel, <em>Add Widgets</em>, search for
+    <em>meowtrics</em>. The widget shows the active emoji at panel size and
+    opens a richer popup on click with per-sensor breakdowns and prose
+    messages.
+  </p>
+
+  <h2>tiling-WM (waybar / polybar / i3blocks)</h2>
+  <p>
+    The daemon's <code>meowtrics json</code> output is line-delimited JSON
+    suitable as a custom module. Example waybar snippet:
+  </p>
+  <pre><code>"custom/meowtrics": {
+  "exec": "meowtrics json",
+  "interval": 5,
+  "return-type": "json",
+  "tooltip": true
+}</code></pre>
+
+  <h2>Disclaimer / no warranty</h2>
+  <div class="warn">
+    This software reads from <code>/proc</code> and <code>/sys</code> and
+    renders a tray icon. It does not modify hardware state, but it is provided
+    <strong>as is, without warranty of any kind</strong>, express or implied.
+    The author is not liable for any damage to hardware, data, or system,
+    however caused. Sensor interpretations are heuristic and may be wrong on
+    your hardware. <strong>Do not rely on this widget for any decision that
+    matters.</strong> Messages displayed by this widget are jokes; do not
+    interpret them as authoritative system advice. By installing or running
+    this software you accept full responsibility. Full text:
+    <a href="https://github.com/ra-yavuz/meowtrics#disclaimer--no-warranty">repo README</a>,
+    license: MIT.
+  </div>
+
+  <h2>Licensing of bundled emoji packs</h2>
+  <p>
+    The default install ships <strong>no bundled glyph assets</strong>: the
+    tray icon is rendered from Unicode codepoints using your system's emoji
+    font. Optional companion packs (Volpeon's Blobcat, OpenMoji, Fluentui
+    Emoji, Twemoji) ship as separate packages, each with their own license file
+    and attribution. Full policy:
+    <a href="https://github.com/ra-yavuz/meowtrics/blob/main/LICENSING.md">LICENSING.md</a>.
+  </p>
+
+  <footer>
+    <p>
+      Author: <a href="https://ra-yavuz.github.io/">Ramazan Yavuz</a>.
+      Source: <a href="https://github.com/ra-yavuz/meowtrics">github.com/ra-yavuz/meowtrics</a>.
+      Apt repository: <a href="https://ra-yavuz.github.io/apt/">ra-yavuz.github.io/apt</a>.
+    </p>
+  </footer>
+</main>
+
+<script>
+  // Cycle the demo emoji like the tray would, just so visitors see the idea.
+  (function () {
+    var el = document.getElementById('demo');
+    if (!el) return;
+    var states = [
+      ['idle',     ['🐈', '😺', '😸', '😻', '😴', '🐈‍⬛']],
+      ['normal',   ['😺', '🐈', '😼', '😻']],
+      ['busy',     ['😼', '🏃‍♂️', '💨', '😺']],
+      ['hot',      ['🥵', '😅', '💦', '🔥']],
+      ['critical', ['🤯', '😵‍💫', '🥵', '🔥']]
+    ];
+    var i = 0;
+    function tick() {
+      var state = states[i % states.length];
+      var emoji = state[1][Math.floor(Math.random() * state[1].length)];
+      el.textContent = emoji;
+      i++;
+      setTimeout(tick, 1200 + Math.random() * 800);
+    }
+    tick();
+  })();
+</script>
+</body>
+</html>
