@@ -10,6 +10,18 @@ case "$1" in
             systemctl daemon-reload >/dev/null 2>&1 || true
         fi
 
+        # Refresh the hicolor icon cache so the meowtrics widget icon
+        # shows up in the Plasma "Add Widgets" menu without re-login.
+        if [ -x /usr/bin/gtk-update-icon-cache ]; then
+            /usr/bin/gtk-update-icon-cache -q -t /usr/share/icons/hicolor 2>/dev/null || true
+        fi
+        # Tell Plasma about the new plasmoid so it appears in the widget chooser.
+        if command -v kbuildsycoca6 >/dev/null 2>&1; then
+            kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
+        elif command -v kbuildsycoca5 >/dev/null 2>&1; then
+            kbuildsycoca5 --noincremental >/dev/null 2>&1 || true
+        fi
+
         # Print the disclaimer at install time. Users see this before they
         # ever run the daemon, in addition to the README, --help output, and
         # daemon startup log.

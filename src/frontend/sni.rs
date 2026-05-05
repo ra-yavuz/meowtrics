@@ -129,13 +129,13 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
         let msg = db
             .render_message(&a)
             .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state));
-        let icon = freedesktop_icon_for(a.state);
+        let icon = freedesktop_icon_for(a.sensor.as_str(), a.state);
         (emoji, msg, icon)
     } else {
         (
             "🐈".to_string(),
             "starting up".to_string(),
-            "face-smile".to_string(),
+            "meowtrics".to_string(),
         )
     };
 
@@ -146,16 +146,48 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
     }
 }
 
-fn freedesktop_icon_for(state: &str) -> String {
-    match state {
-        "critical" => "dialog-warning",
-        "high" | "hot" => "weather-storm",
-        "low" => "battery-caution",
-        "warm" | "busy" | "filling" | "charging" => "weather-clear",
-        "idle" | "fresh" | "full" | "normal" | "long" => "face-smile",
-        _ => "face-smile",
-    }
-    .to_string()
+/// Map (sensor, state) to a freedesktop standard icon name. Names chosen to be
+/// distinct enough that the user actually sees the tray icon change between
+/// states even with a generic icon theme. Falls back to a sensible default if
+/// the user's theme doesn't have a specific name.
+///
+/// v0.2 plan: render the active emoji into a pixmap so this whole table goes
+/// away in favour of true emoji art in the tray.
+fn freedesktop_icon_for(sensor: &str, state: &str) -> String {
+    let s = match (sensor, state) {
+        // Severity overrides the sensor when something's actively wrong.
+        (_, "critical") => "dialog-error",
+        (_, "high") | (_, "hot") => "dialog-warning",
+
+        ("cpu", "busy") => "system-run",
+        ("cpu", "idle") | ("cpu", "normal") => "computer",
+
+        ("ram", _) => "memory",
+        ("swap", _) => "drive-harddisk",
+
+        ("thermal", "warm") => "weather-clear",
+        ("thermal", "cool") | ("thermal", "idle") => "weather-clear-night",
+        ("thermal", _) => "computer",
+
+        ("battery", "full") => "battery-full",
+        ("battery", "charging") => "battery-good-charging",
+        ("battery", "low") => "battery-caution",
+        ("battery", "discharging") => "battery-good",
+        ("battery", _) => "battery",
+
+        ("disk", "filling") => "drive-harddisk",
+        ("disk", _) => "drive-harddisk",
+
+        ("load", "busy") => "system-run",
+        ("load", _) => "computer",
+
+        ("uptime", "ancient") => "appointment-soon",
+        ("uptime", _) => "computer",
+
+        // Default: our own icon shipped via /usr/share/icons/hicolor.
+        _ => "meowtrics",
+    };
+    s.to_string()
 }
 
 pub async fn spawn(state: Arc<RwLock<TrayState>>) -> Result<()> {

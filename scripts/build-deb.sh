@@ -21,6 +21,7 @@ mkdir -p "$PKG_DIR/DEBIAN" \
          "$PKG_DIR/usr/share/meowtrics" \
          "$PKG_DIR/usr/share/plasma/plasmoids/com.ra-yavuz.meowtrics" \
          "$PKG_DIR/usr/share/doc/meowtrics" \
+         "$PKG_DIR/usr/share/icons/hicolor/512x512/apps" \
          "$PKG_DIR/usr/lib/systemd/user"
 
 install -m 0755 "$ROOT/target/release/meowtrics"             "$PKG_DIR/usr/bin/meowtrics"
@@ -29,6 +30,7 @@ install -m 0644 "$ROOT/systemd/meowtrics.service"            "$PKG_DIR/usr/lib/s
 install -m 0644 "$ROOT/README.md"                            "$PKG_DIR/usr/share/doc/meowtrics/README.md"
 install -m 0644 "$ROOT/LICENSE"                              "$PKG_DIR/usr/share/doc/meowtrics/copyright"
 install -m 0644 "$ROOT/LICENSING.md"                         "$PKG_DIR/usr/share/doc/meowtrics/LICENSING.md"
+install -m 0644 "$ROOT/plasmoid/contents/icons/meowtrics.png" "$PKG_DIR/usr/share/icons/hicolor/512x512/apps/meowtrics.png"
 install -m 0755 "$ROOT/debian/postinst"                      "$PKG_DIR/DEBIAN/postinst"
 install -m 0755 "$ROOT/debian/postrm"                        "$PKG_DIR/DEBIAN/postrm"
 cp -r "$ROOT/plasmoid/." "$PKG_DIR/usr/share/plasma/plasmoids/com.ra-yavuz.meowtrics/"

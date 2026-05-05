@@ -1,34 +1,30 @@
 // meowtrics KDE Plasma 6 plasmoid root.
 //
-// The plasmoid is a thin client over the meowtrics daemon. The daemon owns
-// sensor reading, state machines, and message selection; the plasmoid renders
-// the active emoji in the panel and a richer popup on click.
+// Thin client over the meowtrics daemon. The daemon owns sensor reading,
+// state machines, and message selection; the plasmoid renders the active
+// emoji in the panel and a popup on click.
 //
-// Communication: D-Bus service org.rayavuz.Meowtrics on the session bus
-// (the daemon registers it on startup; plasmoid subscribes to PropertiesChanged
-// and pulls state on demand).
-//
-// For v0.1 this file is a working skeleton: it polls a JSON status file at
-// $XDG_RUNTIME_DIR/meowtrics/state.json (a fallback the daemon writes on each
-// tick), which avoids a hard QML/D-Bus binding for the first cut. The D-Bus
-// path is wired in v0.2 once the rendering and popup behaviour is solid.
+// State is pulled by running `meowtrics json` on a timer (Plasma 6 QML's
+// Plasma5Support.DataSource ProcessRunner). The richer D-Bus path is the
+// v0.2 plan once the rendering is solid.
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components 3.0 as PlasmaComponents
+import org.kde.plasma.plasma5support 2.0 as P5Support
 
 PlasmoidItem {
     id: root
 
     property string activeEmoji: "🐈"
-    property string headline: "starting up..."
+    property string headline: "starting up"
     property var sensors: []
 
-    Plasmoid.icon: "face-smile"
-    Plasmoid.toolTipMainText: "meowtrics"
-    Plasmoid.toolTipSubText: root.headline
+    Plasmoid.icon: Qt.resolvedUrl("../icons/meowtrics.png")
+    toolTipMainText: "meowtrics"
+    toolTipSubText: root.headline
 
     compactRepresentation: CompactRepresentation {
         emoji: root.activeEmoji
@@ -41,24 +37,38 @@ PlasmoidItem {
         headline: root.headline
     }
 
-    Timer {
-        // Poll the daemon's state file. The daemon writes it on each tick.
-        interval: 1500
-        running: true
-        repeat: true
-        onTriggered: stateLoader.refresh()
+    P5Support.DataSource {
+        id: jsonRunner
+        engine: "executable"
+        connectedSources: []
+        onNewData: function (sourceName, data) {
+            disconnectSource(sourceName);
+            const stdout = data["stdout"];
+            if (!stdout) return;
+            try {
+                const arr = JSON.parse(stdout);
+                root.sensors = arr;
+                if (arr.length > 0) {
+                    // Pick the highest "value" sensor as the active one for the panel.
+                    let pick = arr[0];
+                    for (const s of arr) if ((s.value || 0) > (pick.value || 0)) pick = s;
+                    // Tray emoji + headline updates would normally come from the daemon
+                    // through D-Bus. Until that's wired, the JSON-only path keeps the
+                    // sensor table in the popup live but leaves the panel emoji static.
+                    root.headline = pick.sensor + " " + Math.round(pick.value);
+                }
+            } catch (e) {
+                root.headline = "could not parse meowtrics json";
+            }
+        }
+        function fetch() { connectSource("meowtrics json"); }
     }
 
-    QtObject {
-        id: stateLoader
-        function refresh() {
-            // In v0.2 this is replaced by D-Bus PropertiesChanged subscription.
-            // For now: read the state file via a small XHR-style approach.
-            // Plasma 6 QML doesn't expose plain file IO without an addon, so the
-            // v0.1 path is to call out to `meowtrics json` via a DataSource.
-            // Wire this up properly in the next pass; this stub keeps the
-            // QML loadable so the plasmoid installs cleanly.
-            root.activeEmoji = root.activeEmoji;
-        }
+    Timer {
+        interval: 5000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: jsonRunner.fetch()
     }
 }

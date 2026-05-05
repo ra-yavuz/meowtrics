@@ -1,3 +1,26 @@
+meowtrics (0.1.1-1) unstable; urgency=low
+
+  * Plasma 6 plasmoid fixes
+    - Replace Plasma 5 toolTipMainText/SubText with Plasma 6 toolTipMainText
+      properties at PlasmoidItem level (the old form errored at load).
+    - Plasmoid icon: use the meowtrics logo (shipped at
+      /usr/share/icons/hicolor/512x512/apps/meowtrics.png) instead of the
+      generic face-smile system icon.
+    - Wire Plasma5Support DataSource to actually call `meowtrics json`
+      and update the popup sensor list every 5s.
+  * Tray icon variation
+    - Map (sensor, state) to a wider set of distinct freedesktop icon names
+      (computer, system-run, memory, drive-harddisk, weather-clear,
+      battery-good-charging, dialog-warning, ...) so the tray icon visibly
+      changes between sensor states. True emoji rendering still planned for
+      v0.2.
+  * Packaging
+    - Build .deb installs the logo to hicolor at 512x512.
+    - postinst refreshes the icon cache and runs kbuildsycoca6 so the widget
+      shows up in the chooser without re-login.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 19:00:00 +0000
+
 meowtrics (0.1.0-1) unstable; urgency=low
 
   * Initial release.
