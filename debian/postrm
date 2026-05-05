@@ -1,9 +1,37 @@
 #!/bin/sh
 # postrm for meowtrics
+#
+# On `purge`, also clears per-user config and cache directories so a clean
+# remove leaves nothing behind. dpkg has no native concept of per-user state,
+# so we walk /home and the root user's home explicitly.
 set -e
 
+cleanup_user_state() {
+    home="$1"
+    [ -d "$home" ] || return 0
+    rm -rf -- "$home/.config/meowtrics" "$home/.cache/meowtrics" 2>/dev/null || true
+}
+
 case "$1" in
-    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    purge)
+        # Wipe per-user config + cache for every real user on the system.
+        for d in /home/*; do
+            cleanup_user_state "$d"
+        done
+        cleanup_user_state /root
+
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload >/dev/null 2>&1 || true
+        fi
+        # Refresh icon cache so the meowtrics icon disappears from any chooser.
+        if [ -x /usr/bin/gtk-update-icon-cache ]; then
+            /usr/bin/gtk-update-icon-cache -q -t /usr/share/icons/hicolor 2>/dev/null || true
+        fi
+        if command -v kbuildsycoca6 >/dev/null 2>&1; then
+            kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
+        fi
+        ;;
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         if command -v systemctl >/dev/null 2>&1; then
             systemctl daemon-reload >/dev/null 2>&1 || true
         fi
