@@ -175,7 +175,7 @@
   </p>
 
   <div class="demo">
-    <img class="frame" id="demo-frame" src="neko/mati2.png" alt="animated Oneko cat" width="96" height="96">
+    <img class="frame" id="demo-frame" src="neko/mati2.png?v=2" alt="animated Oneko cat" width="96" height="96">
   </div>
 
   <div class="links-row">
@@ -372,7 +372,8 @@ systemctl --user enable --now meowtrics</code></pre>
     function tick() {
       var anim = animations[animIdx];
       var frame = anim.frames[frameIdx % anim.frames.length];
-      img.src = 'neko/' + frame + '.png';
+      // ?v=N is a cache-buster: bump it whenever the sprite PNGs change.
+      img.src = 'neko/' + frame + '.png?v=2';
       frameIdx++;
       frameCount++;
       if (frameCount >= framesPerAnim) {
