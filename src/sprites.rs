@@ -196,24 +196,26 @@ fn find_sprite_dir() -> Option<PathBuf> {
     None
 }
 
-/// Decode a 1-bit-grayscale (or any) PNG into ARGB32 bytes, treating any
-/// non-transparent dark pixel as opaque white. This makes the sprite "ink"
-/// blend with whatever panel background the user has.
+/// Decode a PNG and re-emit as ARGB32 with the cat ink rendered in a neutral
+/// mid-gray on transparent. Mid-gray reads on both light and dark panels
+/// (lower contrast on each than a single-color choice would, but visible
+/// everywhere). v0.3 may add a config option for users to pick their own
+/// ink colour; for now mid-gray is the universal default.
+///
+/// Input PNGs are black-on-transparent (138 cat pixels, 886 transparent in
+/// a typical 32x32 frame). Any pixel with non-zero alpha is treated as ink.
 ///
 /// Output buffer layout: ARGB big-endian, top-down rows, length = w*h*4.
 fn load_png_white_on_transparent(path: &Path) -> anyhow::Result<Frame> {
     use image::GenericImageView;
+    const INK: [u8; 4] = [0xFF, 0x80, 0x80, 0x80]; // ARGB: opaque, mid-gray
     let img = image::open(path)?;
     let (w, h) = img.dimensions();
     let rgba = img.to_rgba8();
     let mut out = Vec::with_capacity((w * h * 4) as usize);
     for px in rgba.pixels() {
-        // Treat any pixel with non-zero alpha or non-white luminance as "ink".
-        let lum = (px[0] as u32 + px[1] as u32 + px[2] as u32) / 3;
-        let is_ink = px[3] > 0 && lum < 200;
-        if is_ink {
-            // ARGB big-endian: A, R, G, B = FF, FF, FF, FF (opaque white)
-            out.extend_from_slice(&[0xFF, 0xFF, 0xFF, 0xFF]);
+        if px[3] > 0 {
+            out.extend_from_slice(&INK);
         } else {
             out.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]);
         }

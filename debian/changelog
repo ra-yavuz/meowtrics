@@ -1,3 +1,20 @@
+meowtrics (0.2.1-1) unstable; urgency=low
+
+  * Sprite alpha was wrong
+    - The XBM-to-PNG conversion in v0.2.0 produced 1-bit grayscale PNGs
+      with no alpha, which rendered as solid black-square backgrounds.
+      Reconverted to true RGBA with the cat opaque and the rest fully
+      transparent.
+  * Tray ink colour
+    - Switched the tray's runtime recolor from white to mid-gray (#808080).
+      White was invisible on light panels; mid-gray reads on both light
+      and dark themes. v0.3 may add a config option for custom ink.
+  * Pages preview
+    - Removed the debug "sit_alert" / "sleep" labels that snuck through.
+      The hero now shows just the animated cat, no text.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 00:10:00 +0000
+
 meowtrics (0.2.0-1) unstable; urgency=low
 
   * Animated Oneko cat in the tray

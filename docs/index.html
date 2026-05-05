@@ -78,21 +78,13 @@
   h1 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.005em; }
   p.tag { color: var(--muted); margin: 0 0 18px; font-size: 1rem; max-width: 60ch; }
   .demo {
-    display: flex; align-items: center; justify-content: center; gap: 16px;
+    display: flex; align-items: center; justify-content: center;
     margin: 18px 0 24px; user-select: none;
   }
   .demo .frame {
     width: 96px; height: 96px;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
-  }
-  /* The bundled sprites are white-on-transparent; tint them so they read on
-     both light and dark backgrounds. */
-  .demo .frame { filter: invert(0); }
-  @media (prefers-color-scheme: dark) { .demo .frame { filter: invert(1); } }
-  .demo .label {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.86rem; color: var(--muted);
   }
   h2 {
     font-size: 1rem; margin: 36px 0 10px;
@@ -184,7 +176,6 @@
 
   <div class="demo">
     <img class="frame" id="demo-frame" src="neko/mati2.png" alt="animated Oneko cat" width="96" height="96">
-    <span class="label" id="demo-label">sit_calm</span>
   </div>
 
   <div class="links-row">
@@ -362,8 +353,7 @@ systemctl --user enable --now meowtrics</code></pre>
   // exact thing they get on install. Each animation is [frames..., per-frame ms].
   (function () {
     var img = document.getElementById('demo-frame');
-    var label = document.getElementById('demo-label');
-    if (!img || !label) return;
+    if (!img) return;
 
     var animations = [
       { name: 'sleep',     frames: ['sleep1', 'sleep2'],            frameMs: 800 },
@@ -383,7 +373,6 @@ systemctl --user enable --now meowtrics</code></pre>
       var anim = animations[animIdx];
       var frame = anim.frames[frameIdx % anim.frames.length];
       img.src = 'neko/' + frame + '.png';
-      label.textContent = anim.name;
       frameIdx++;
       frameCount++;
       if (frameCount >= framesPerAnim) {
