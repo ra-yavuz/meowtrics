@@ -78,8 +78,21 @@
   h1 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.005em; }
   p.tag { color: var(--muted); margin: 0 0 18px; font-size: 1rem; max-width: 60ch; }
   .demo {
-    text-align: center; font-size: 64px; line-height: 1; margin: 18px 0 24px;
-    user-select: none;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin: 18px 0 24px; user-select: none;
+  }
+  .demo .frame {
+    width: 96px; height: 96px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+  }
+  /* The bundled sprites are white-on-transparent; tint them so they read on
+     both light and dark backgrounds. */
+  .demo .frame { filter: invert(0); }
+  @media (prefers-color-scheme: dark) { .demo .frame { filter: invert(1); } }
+  .demo .label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.86rem; color: var(--muted);
   }
   h2 {
     font-size: 1rem; margin: 36px 0 10px;
@@ -169,7 +182,10 @@
     you're idle. Hover reveals a one-line take on what's going on.
   </p>
 
-  <div class="demo" id="demo">🐈</div>
+  <div class="demo">
+    <img class="frame" id="demo-frame" src="neko/mati2.png" alt="animated Oneko cat" width="96" height="96">
+    <span class="label" id="demo-label">sit_calm</span>
+  </div>
 
   <div class="links-row">
     <a href="https://github.com/ra-yavuz/meowtrics">source</a>
@@ -342,24 +358,40 @@ systemctl --user enable --now meowtrics</code></pre>
 </main>
 
 <script>
-  // Cycle the demo emoji like the tray would, just so visitors see the idea.
+  // Cycle the actual Oneko animations the daemon uses, so visitors see the
+  // exact thing they get on install. Each animation is [frames..., per-frame ms].
   (function () {
-    var el = document.getElementById('demo');
-    if (!el) return;
-    var states = [
-      ['idle',     ['🐈', '😺', '😸', '😻', '😴', '🐈‍⬛']],
-      ['normal',   ['😺', '🐈', '😼', '😻']],
-      ['busy',     ['😼', '🏃‍♂️', '💨', '😺']],
-      ['hot',      ['🥵', '😅', '💦', '🔥']],
-      ['critical', ['🤯', '😵‍💫', '🥵', '🔥']]
+    var img = document.getElementById('demo-frame');
+    var label = document.getElementById('demo-label');
+    if (!img || !label) return;
+
+    var animations = [
+      { name: 'sleep',     frames: ['sleep1', 'sleep2'],            frameMs: 800 },
+      { name: 'sit_calm',  frames: ['mati2', 'mati2', 'mati2', 'mati3'], frameMs: 600 },
+      { name: 'sit_alert', frames: ['awake'],                       frameMs: 1500 },
+      { name: 'wash_face', frames: ['jare2', 'kaki1', 'kaki2'],     frameMs: 220 },
+      { name: 'run_panic', frames: ['dwleft1', 'dwleft2'],          frameMs: 120 },
+      { name: 'scratch',   frames: ['ltogi1', 'ltogi2'],            frameMs: 200 }
     ];
-    var i = 0;
+
+    var animIdx = 0;
+    var frameIdx = 0;
+    var framesPerAnim = 12;
+    var frameCount = 0;
+
     function tick() {
-      var state = states[i % states.length];
-      var emoji = state[1][Math.floor(Math.random() * state[1].length)];
-      el.textContent = emoji;
-      i++;
-      setTimeout(tick, 1200 + Math.random() * 800);
+      var anim = animations[animIdx];
+      var frame = anim.frames[frameIdx % anim.frames.length];
+      img.src = 'neko/' + frame + '.png';
+      label.textContent = anim.name;
+      frameIdx++;
+      frameCount++;
+      if (frameCount >= framesPerAnim) {
+        frameCount = 0;
+        frameIdx = 0;
+        animIdx = (animIdx + 1) % animations.length;
+      }
+      setTimeout(tick, anim.frameMs);
     }
     tick();
   })();
