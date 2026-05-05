@@ -6,6 +6,7 @@ mod daemon;
 mod frontend;
 mod messages;
 mod sensors;
+mod sprites;
 mod state;
 
 #[derive(Parser)]

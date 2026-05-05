@@ -1,16 +1,27 @@
-//! Daemon main loop: tick sensors, advance state machines, push to tray frontend.
+//! Daemon main loop.
+//!
+//! Two timers:
+//!   - **sensor tick** (TICK_SECS = 5s): read all sensors, run the state
+//!     machine, decide the active animation, write new TrayState.
+//!   - **frame tick** (FRAME_SECS = 0.25s): advance the current animation
+//!     by one frame. Pure visual; doesn't touch sensors.
+//!
+//! Both run on the same single-threaded tokio runtime; the frame tick stays
+//! cheap so it never starves sensor reads.
 
 use anyhow::Result;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tokio::time::sleep;
 
-use crate::frontend::sni::{render_state, spawn as spawn_sni, TrayState};
+use crate::frontend::sni::{advance_frame, render_state, spawn as spawn_sni, TrayState};
 use crate::messages::Database;
 use crate::sensors::read_all;
+use crate::sprites::SpriteLibrary;
 use crate::state::StateMachine;
 
 const TICK_SECS: u64 = 5;
+const FRAME_MS: u64 = 250;
 
 pub async fn run() -> Result<()> {
     tracing::info!("meowtrics v{} starting", env!("CARGO_PKG_VERSION"));
@@ -27,9 +38,35 @@ pub async fn run() -> Result<()> {
         }
     };
 
+    let sprites = Arc::new(SpriteLibrary::load());
+    if sprites.is_empty() {
+        tracing::info!("running without sprite animation; SNI will use themed icon names");
+    } else {
+        tracing::info!(
+            "sprite library loaded: {} animations",
+            sprites.animations.len()
+        );
+    }
+
     let tray_state = Arc::new(RwLock::new(TrayState::default()));
-    if let Err(e) = spawn_sni(tray_state.clone()).await {
-        tracing::warn!("could not register SNI tray icon: {e:#}; continuing in headless mode");
+    let tray_handle = match spawn_sni(tray_state.clone(), sprites.clone()).await {
+        Ok(h) => Some(h),
+        Err(e) => {
+            tracing::warn!("could not register SNI tray icon: {e:#}; continuing in headless mode");
+            None
+        }
+    };
+
+    // Spawn the frame-advance loop. It only does work if the SNI tray is up.
+    if let Some(handle) = tray_handle.clone() {
+        let sprites_for_anim = sprites.clone();
+        let state_for_anim = tray_state.clone();
+        tokio::spawn(async move {
+            loop {
+                advance_frame(&handle, &sprites_for_anim, &state_for_anim).await;
+                sleep(Duration::from_millis(FRAME_MS)).await;
+            }
+        });
     }
 
     let mut sm = StateMachine::new();

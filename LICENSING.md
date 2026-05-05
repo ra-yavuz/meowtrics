@@ -20,6 +20,18 @@ meowtrics itself is MIT, so it is technically commercial-friendly. In practice i
 
 Packs licensed under CC-BY-NC-SA-4.0 (e.g. Mutant Standard, if shipped) are **labelled clearly** in the package name (`meowtrics-pack-<name>-nc`) and in `pack-manifest.toml`. Anyone redistributing meowtrics commercially must omit NC-labelled packs.
 
+## Bundled assets in v0.2
+
+The default install of meowtrics 0.2 ships the Oneko sprite frames:
+
+| Asset | Source | License | Author |
+|---|---|---|---|
+| `usr/share/meowtrics/icons/neko/*.png` | [oneko 1.2.sakura.5](http://www.daidouji.com/oneko/) | **Public domain** | Tatsuya Kato (1990), modified from xneko by Masayuki Koba |
+
+Verification: the upstream `README` and the Linux Software Map (LSM) entry distributed with oneko on sunsite both declare the work as public domain. The Debian package `oneko` records the same in its [machine-readable copyright file](https://sources.debian.org/src/oneko/).
+
+Public domain means we can copy, modify, redistribute, and use commercially. We attribute as a courtesy in this file, in `debian/copyright`, and in the daemon's `--help` output.
+
 ## Planned packs (not yet shipped)
 
 | Pack | Upstream | License | Status |

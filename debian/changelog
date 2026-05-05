@@ -1,3 +1,26 @@
+meowtrics (0.2.0-1) unstable; urgency=low
+
+  * Animated Oneko cat in the tray
+    - Bundled the public-domain Oneko sprite set (32 frames, 32x32 each,
+      ~130 KB) under /usr/share/meowtrics/icons/neko/.
+    - New SpriteLibrary loads PNG frames at startup and exposes named
+      animations: sleep, sit_calm, sit_alert, wash_face, run_panic,
+      scratch.
+    - SNI tray now ships ARGB pixmaps instead of freedesktop icon names.
+      The daemon advances the current animation's frame every 250 ms;
+      the cat is actually moving in your tray now.
+    - Sensor states map to animations: idle/fresh/long/ancient -> sleep;
+      normal/charging/full -> sit_calm; busy/warm/filling -> sit_alert;
+      high/hot/low -> wash_face (the cat sweats); critical -> run_panic.
+    - If the sprite directory is missing (e.g. stripped install), the
+      daemon transparently falls back to the v0.1 themed-icon path.
+  * Licensing
+    - LICENSING.md documents the Oneko sprite provenance and public-domain
+      status (Tatsuya Kato, 1990; verified via Debian's authoritative
+      copyright file).
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 23:55:00 +0000
+
 meowtrics (0.1.4-1) unstable; urgency=low
 
   * Tray priority: never let "boring forever" sensors win the icon

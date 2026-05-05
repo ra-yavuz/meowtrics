@@ -1,37 +1,73 @@
 //! StatusNotifierItem tray frontend.
 //!
-//! Approach: register a tray item via `ksni` whose IconName maps from the most
-//! "interesting" sensor's state to a freedesktop standard icon name (face-smile,
-//! weather-clear, dialog-warning, ...). The emoji and current message are shown
-//! in the tooltip, which every modern tray host (KDE, GNOME+ext, XFCE 4.16+,
-//! Cinnamon, Budgie, MATE, LXQt, waybar) renders on hover.
+//! Architecture:
+//!   - daemon.rs ticks sensors every TICK_SECS, computes a snapshot, and
+//!     writes the picked-animation name + the multi-line tooltip into a
+//!     shared TrayState.
+//!   - A separate, faster animation timer (FRAME_SECS = 0.25s) advances
+//!     the current animation's frame index and pushes the corresponding
+//!     ARGB pixmap into the SNI Tray via ksni's Handle::update.
 //!
-//! v0.1 deliberately avoids rendering emoji to a pixmap, because pure-Rust
-//! emoji rendering with the system color emoji font is non-trivial (no
-//! Rust crate handles COLR/CPAL or CBDT/CBLC tables out-of-the-box).
-//! v0.2 will switch to IconPixmap rendering once we ship a bundled emoji
-//! pack (PNG sprites at panel sizes).
+//! The shared state lock is std::sync::RwLock (not tokio): ksni's Tray
+//! trait methods are sync but run inside ksni's tokio runtime, and a
+//! tokio lock would panic on blocking_read there.
 
-// ksni's Tray trait methods are sync (called from inside ksni's async event
-// loop). We must not block on a tokio::sync lock here or the runtime panics
-// with "Cannot block the current thread from within a runtime". Use a plain
-// std::sync::RwLock; contention is none-to-trivial (one writer per tick,
-// readers only for the SNI re-render).
-use anyhow::Result;
-use ksni::{Icon, MenuItem, Tray, TrayMethods};
 use std::sync::{Arc, RwLock};
 
+use anyhow::Result;
+use ksni::{Icon, MenuItem, Tray, TrayMethods};
+
+use crate::sprites::{Animation, SpriteLibrary};
 use crate::state::StableState;
 
+/// Shared state that the daemon writes and the SNI methods read.
 #[derive(Clone, Default)]
 pub struct TrayState {
-    pub icon_name: String,
+    /// Title shown in the tooltip header (a short label, normally "meowtrics").
     pub title: String,
-    pub tooltip_subtitle: String,
+    /// Multi-line description shown under the tooltip header. Includes the
+    /// catchy random message + a per-sensor table.
+    pub tooltip: String,
+    /// Name of the active animation in `SpriteLibrary`, or empty string for
+    /// the fallback themed icon path.
+    pub animation_name: String,
+    /// Themed icon name to use when the sprite library is empty / animation
+    /// is unknown (StatusNotifierWatcher's IconName fallback).
+    pub fallback_icon_name: String,
 }
 
 pub struct MeowtricsTray {
     state: Arc<RwLock<TrayState>>,
+    sprites: Arc<SpriteLibrary>,
+    /// Frame index inside the current animation. Lives on the tray itself
+    /// rather than the shared state so the daemon doesn't need to know.
+    pub frame_index: usize,
+    /// How many ticks the current frame has been displayed for.
+    pub ticks_on_frame: u32,
+    /// Cached animation name we last advanced (so we can reset frame_index
+    /// when the daemon switches us to a new animation).
+    last_animation: String,
+}
+
+impl MeowtricsTray {
+    fn current_animation(&self) -> Option<&Animation> {
+        let name = self.state.read().ok()?.animation_name.clone();
+        if name.is_empty() {
+            None
+        } else {
+            self.sprites.get(&name)
+        }
+    }
+
+    fn current_frame_pixmap(&self) -> Option<Icon> {
+        let anim = self.current_animation()?;
+        let f = anim.frames.get(self.frame_index)?;
+        Some(Icon {
+            width: f.width,
+            height: f.height,
+            data: f.data.clone(),
+        })
+    }
 }
 
 impl Tray for MeowtricsTray {
@@ -40,38 +76,65 @@ impl Tray for MeowtricsTray {
     }
 
     fn title(&self) -> String {
-        let g = self.state.read().expect("tray state lock poisoned");
-        if g.title.is_empty() {
-            "meowtrics".to_string()
-        } else {
-            g.title.clone()
-        }
+        self.state
+            .read()
+            .ok()
+            .map(|g| {
+                if g.title.is_empty() {
+                    "meowtrics".to_string()
+                } else {
+                    g.title.clone()
+                }
+            })
+            .unwrap_or_else(|| "meowtrics".to_string())
     }
 
     fn icon_name(&self) -> String {
-        let g = self.state.read().expect("tray state lock poisoned");
-        if g.icon_name.is_empty() {
-            "face-smile".to_string()
-        } else {
-            g.icon_name.clone()
-        }
+        // Used when icon_pixmap is empty (no sprite library loaded). Otherwise
+        // the pixmap wins on most tray hosts.
+        self.state
+            .read()
+            .ok()
+            .map(|g| {
+                if g.fallback_icon_name.is_empty() {
+                    "meowtrics".to_string()
+                } else {
+                    g.fallback_icon_name.clone()
+                }
+            })
+            .unwrap_or_else(|| "meowtrics".to_string())
     }
 
     fn icon_pixmap(&self) -> Vec<Icon> {
-        Vec::new()
+        // Sprite path: ship the current frame as the tray pixmap.
+        self.current_frame_pixmap()
+            .map(|i| vec![i])
+            .unwrap_or_default()
     }
 
     fn tool_tip(&self) -> ksni::ToolTip {
-        let g = self.state.read().expect("tray state lock poisoned");
-        ksni::ToolTip {
-            icon_name: g.icon_name.clone(),
-            icon_pixmap: Vec::new(),
-            title: format!(
-                "{} {}",
-                if g.title.is_empty() { "🐈" } else { &g.title },
-                "meowtrics"
+        let g = self.state.read();
+        let (title, description, icon_name) = match g {
+            Ok(g) => (
+                if g.title.is_empty() {
+                    "meowtrics".to_string()
+                } else {
+                    g.title.clone()
+                },
+                g.tooltip.clone(),
+                g.fallback_icon_name.clone(),
             ),
-            description: g.tooltip_subtitle.clone(),
+            Err(_) => ("meowtrics".to_string(), String::new(), String::new()),
+        };
+        let icon_pixmap = self
+            .current_frame_pixmap()
+            .map(|i| vec![i])
+            .unwrap_or_default();
+        ksni::ToolTip {
+            icon_name,
+            icon_pixmap,
+            title,
+            description,
         }
     }
 
@@ -111,23 +174,18 @@ impl Tray for MeowtricsTray {
     }
 }
 
-/// Map a snapshot of sensor states to a tray title/tooltip + a freedesktop icon name.
+/// Compute the TrayState for a sensor snapshot: pick the active sensor,
+/// derive the animation name, render the multi-line tooltip body.
 pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> TrayState {
-    // Pick the "most interesting" sensor for the tray icon.
-    // - "critical" / "hot" / "low" / "filling" / "high" / "warm" / "busy" all
-    //   bid for attention (priority > 1).
-    // - "normal" / "charging" / "discharging" are neutral (priority 1, eligible
-    //   for the icon if nothing more interesting is up).
-    // - "idle" / "fresh" / "full" / "long" / "ancient" / "off" are boring; they
-    //   never win the icon. Without this, uptime locks to "ancient" after a
-    //   week and the tray never visually changes again.
+    // Priority for picking the "most interesting" sensor for the icon.
+    // Boring states (idle / fresh / full / long / ancient / off / cool) are
+    // excluded so e.g. uptime never wins after a week.
     let priority = |state: &str| -> i8 {
         match state {
             "critical" => 5,
             "high" | "hot" | "low" => 4,
             "filling" | "warm" | "busy" => 3,
             "normal" | "charging" | "discharging" => 1,
-            // boring states: never bid for the tray icon.
             "idle" | "fresh" | "full" | "long" | "ancient" | "off" | "cool" => -1,
             _ => 0,
         }
@@ -139,35 +197,30 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
         .cloned()
         .or_else(|| snap.iter().max_by_key(|s| priority(s.state)).cloned());
 
-    let (emoji, headline, icon_name) = if let Some(a) = active {
-        let emoji = db
-            .pick_emoji(a.sensor.as_str(), a.state)
-            .unwrap_or_else(|| "🐈".to_string());
-        let msg = db
-            .render_message(&a)
-            .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state));
-        let icon = freedesktop_icon_for(a.sensor.as_str(), a.state);
-        (emoji, msg, icon)
+    let (animation_name, fallback_icon_name, headline) = if let Some(a) = active.as_ref() {
+        (
+            crate::sprites::animation_for(a.sensor.as_str(), a.state).to_string(),
+            freedesktop_icon_for(a.sensor.as_str(), a.state),
+            db.render_message(a)
+                .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state)),
+        )
     } else {
         (
-            "🐈".to_string(),
-            "starting up".to_string(),
+            "sit_calm".to_string(),
             "meowtrics".to_string(),
+            "starting up".to_string(),
         )
     };
 
-    // Build a multi-line tooltip body listing every sensor: emoji + name +
-    // state + value. The headline (the active sensor's prose message) is the
-    // first line; the table follows. SNI tooltip descriptions accept newlines.
-    let mut body = String::with_capacity(256);
-    body.push_str(&headline);
-    body.push('\n');
+    // Multi-line tooltip: catchy headline, then a per-sensor table.
+    let mut tooltip = String::with_capacity(256);
+    tooltip.push_str(&headline);
     for s in snap {
         let e = db
             .pick_emoji(s.sensor.as_str(), s.state)
             .unwrap_or_else(|| "  ".to_string());
-        body.push('\n');
-        body.push_str(&format!(
+        tooltip.push('\n');
+        tooltip.push_str(&format!(
             "{}  {:<8} {:<10} {:>6.1}",
             e,
             s.sensor.as_str(),
@@ -177,58 +230,87 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
     }
 
     TrayState {
-        icon_name,
-        title: emoji,
-        tooltip_subtitle: body,
+        title: "meowtrics".to_string(),
+        tooltip,
+        animation_name,
+        fallback_icon_name,
     }
 }
 
-/// Map (sensor, state) to a freedesktop standard icon name. Names chosen to be
-/// distinct enough that the user actually sees the tray icon change between
-/// states even with a generic icon theme. Falls back to a sensible default if
-/// the user's theme doesn't have a specific name.
-///
-/// v0.2 plan: render the active emoji into a pixmap so this whole table goes
-/// away in favour of true emoji art in the tray.
+/// Map (sensor, state) to a freedesktop standard icon name. Only used when
+/// the sprite library is empty (no Oneko PNGs found).
 fn freedesktop_icon_for(sensor: &str, state: &str) -> String {
     let s = match (sensor, state) {
-        // Severity overrides the sensor when something's actively wrong.
         (_, "critical") => "dialog-error",
         (_, "high") | (_, "hot") => "dialog-warning",
-
         ("cpu", "busy") => "system-run",
         ("cpu", "idle") | ("cpu", "normal") => "computer",
-
         ("ram", _) => "memory",
         ("swap", _) => "drive-harddisk",
-
         ("thermal", "warm") => "weather-clear",
         ("thermal", "cool") | ("thermal", "idle") => "weather-clear-night",
         ("thermal", _) => "computer",
-
         ("battery", "full") => "battery-full",
         ("battery", "charging") => "battery-good-charging",
         ("battery", "low") => "battery-caution",
         ("battery", "discharging") => "battery-good",
         ("battery", _) => "battery",
-
-        ("disk", "filling") => "drive-harddisk",
         ("disk", _) => "drive-harddisk",
-
         ("load", "busy") => "system-run",
         ("load", _) => "computer",
-
         ("uptime", "ancient") => "appointment-soon",
         ("uptime", _) => "computer",
-
-        // Default: our own icon shipped via /usr/share/icons/hicolor.
         _ => "meowtrics",
     };
     s.to_string()
 }
 
-pub async fn spawn(state: Arc<RwLock<TrayState>>) -> Result<()> {
-    let tray = MeowtricsTray { state };
-    let _handle = tray.spawn().await?;
-    Ok(())
+/// Spawn the tray and return a handle the daemon can use to advance frames.
+pub async fn spawn(
+    state: Arc<RwLock<TrayState>>,
+    sprites: Arc<SpriteLibrary>,
+) -> Result<ksni::Handle<MeowtricsTray>> {
+    let tray = MeowtricsTray {
+        state,
+        sprites,
+        frame_index: 0,
+        ticks_on_frame: 0,
+        last_animation: String::new(),
+    };
+    let handle = tray.spawn().await?;
+    Ok(handle)
+}
+
+/// Advance the animation by one frame tick. Should be called from the daemon
+/// on the frame timer (FRAME_SECS). Inspects the shared state to see what
+/// animation should be playing; resets frame_index when the daemon switched
+/// us to a new animation; otherwise honours the current frame's duration.
+pub async fn advance_frame(
+    handle: &ksni::Handle<MeowtricsTray>,
+    sprites: &SpriteLibrary,
+    state: &Arc<RwLock<TrayState>>,
+) {
+    let target = state
+        .read()
+        .ok()
+        .map(|g| g.animation_name.clone())
+        .unwrap_or_default();
+    let anim = sprites.get(&target);
+    handle
+        .update(|tray| {
+            // Switch animations cleanly when the daemon points us elsewhere.
+            if tray.last_animation != target {
+                tray.last_animation = target.clone();
+                tray.frame_index = 0;
+                tray.ticks_on_frame = 0;
+            }
+            let Some(anim) = anim else { return };
+            tray.ticks_on_frame += 1;
+            let dur = anim.durations.get(tray.frame_index).copied().unwrap_or(8);
+            if tray.ticks_on_frame >= dur {
+                tray.ticks_on_frame = 0;
+                tray.frame_index = (tray.frame_index + 1) % anim.frames.len();
+            }
+        })
+        .await;
 }
