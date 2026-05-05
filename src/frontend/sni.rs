@@ -113,20 +113,33 @@ impl Tray for MeowtricsTray {
 
 /// Map a snapshot of sensor states to a tray title/tooltip + a freedesktop icon name.
 pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> TrayState {
-    // Pick the "most interesting" sensor: highest severity wins.
-    let priority = |state: &str| -> u8 {
+    // Pick the "most interesting" sensor for the tray icon.
+    // - "critical" / "hot" / "low" / "filling" / "high" / "warm" / "busy" all
+    //   bid for attention (priority > 1).
+    // - "normal" / "charging" / "discharging" are neutral (priority 1, eligible
+    //   for the icon if nothing more interesting is up).
+    // - "idle" / "fresh" / "full" / "long" / "ancient" / "off" are boring; they
+    //   never win the icon. Without this, uptime locks to "ancient" after a
+    //   week and the tray never visually changes again.
+    let priority = |state: &str| -> i8 {
         match state {
             "critical" => 5,
             "high" | "hot" | "low" => 4,
             "filling" | "warm" | "busy" => 3,
-            "charging" | "discharging" | "normal" => 2,
-            "idle" | "fresh" | "long" | "full" => 1,
-            _ => 1,
+            "normal" | "charging" | "discharging" => 1,
+            // boring states: never bid for the tray icon.
+            "idle" | "fresh" | "full" | "long" | "ancient" | "off" | "cool" => -1,
+            _ => 0,
         }
     };
-    let active = snap.iter().max_by_key(|s| priority(s.state)).cloned();
+    let active = snap
+        .iter()
+        .filter(|s| priority(s.state) >= 0)
+        .max_by_key(|s| priority(s.state))
+        .cloned()
+        .or_else(|| snap.iter().max_by_key(|s| priority(s.state)).cloned());
 
-    let (emoji, message, icon_name) = if let Some(a) = active {
+    let (emoji, headline, icon_name) = if let Some(a) = active {
         let emoji = db
             .pick_emoji(a.sensor.as_str(), a.state)
             .unwrap_or_else(|| "🐈".to_string());
@@ -143,10 +156,30 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
         )
     };
 
+    // Build a multi-line tooltip body listing every sensor: emoji + name +
+    // state + value. The headline (the active sensor's prose message) is the
+    // first line; the table follows. SNI tooltip descriptions accept newlines.
+    let mut body = String::with_capacity(256);
+    body.push_str(&headline);
+    body.push('\n');
+    for s in snap {
+        let e = db
+            .pick_emoji(s.sensor.as_str(), s.state)
+            .unwrap_or_else(|| "  ".to_string());
+        body.push('\n');
+        body.push_str(&format!(
+            "{}  {:<8} {:<10} {:>6.1}",
+            e,
+            s.sensor.as_str(),
+            s.state,
+            s.last_value
+        ));
+    }
+
     TrayState {
         icon_name,
         title: emoji,
-        tooltip_subtitle: message,
+        tooltip_subtitle: body,
     }
 }
 

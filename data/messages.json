@@ -1,53 +1,63 @@
 {
-  "version": 2,
+  "version": 3,
   "updated": "2026-05-05",
-  "_comment": "Edit live at https://github.com/ra-yavuz/meowtrics/blob/main/data/messages.json. Resolution order: bundled defaults < cached daily refresh < user override at ~/.config/meowtrics/messages.json. Templates use {value} (raw reading), {duration} (humanized time in current state), and per-sensor variables. The widget picks one emoji and one message per tick, weighted.",
+  "_comment": "Edit live at https://github.com/ra-yavuz/meowtrics/blob/main/data/messages.json. Resolution order: bundled defaults < cached daily refresh < user override at ~/.config/meowtrics/messages.json. Templates use {value} (raw reading) and {duration} (humanized time in current state). The cat narrates: messages are written from the cat's POV, in lowercase, short, lightly catty.",
 
   "sensors": {
 
     "cpu": {
       "idle": {
-        "emoji": ["🐈", "😺", "😸", "😻", "😴", "🐈‍⬛", "💤", "🪷", "🌿"],
+        "emoji": ["🐈", "😺", "😸", "😻", "😴", "🐈‍⬛", "💤", "🪷"],
         "messages": [
-          {"text": "all quiet on the cpu front. {duration} of zen.", "weight": 5},
-          {"text": "fans off, cores napping. {duration} since anything happened.", "weight": 2},
-          {"text": "cpu at {value}%. cat purring intensifies.", "weight": 2},
-          {"text": "nothing to report. consider a tea.", "weight": 1}
+          {"text": "all quiet on the cpu front. cat is loafing.", "weight": 4},
+          {"text": "{duration} of zen. nothing to chase.", "weight": 2},
+          {"text": "fans off, cores napping. cat approves.", "weight": 2},
+          {"text": "cpu at {value}%. perfect for naps.", "weight": 2},
+          {"text": "purr.", "weight": 1},
+          {"text": "no thoughts, head empty.", "weight": 1}
         ]
       },
       "normal": {
         "emoji": ["😺", "🐈", "😼", "😻", "🐾"],
         "messages": [
-          {"text": "cpu at {value}%. unremarkable.", "weight": 4},
+          {"text": "cpu at {value}%. unremarkable. cat is unbothered.", "weight": 4},
           {"text": "{value}% busy. probably just chrome.", "weight": 2},
-          {"text": "vibing.", "weight": 1}
+          {"text": "vibing at {value}%.", "weight": 2},
+          {"text": "the cores are doing their little jobs.", "weight": 1},
+          {"text": "no notes from the cat.", "weight": 1}
         ]
       },
       "busy": {
         "emoji": ["😼", "🏃", "🏃‍♂️", "💨", "🦫", "⚙️"],
         "messages": [
-          {"text": "cpu at {value}%. someone's working.", "weight": 4},
+          {"text": "cpu at {value}%. someone is doing something.", "weight": 4},
           {"text": "{value}% busy for {duration}. compile job? video? a single chrome tab?", "weight": 2},
-          {"text": "the cores are earning their keep.", "weight": 1},
-          {"text": "{value}% of cpu, {duration} sustained. focus mode engaged.", "weight": 1}
+          {"text": "the cores are earning their kibble.", "weight": 2},
+          {"text": "cat watches the progress bar with mild interest.", "weight": 2},
+          {"text": "{value}% sustained for {duration}. focus mode engaged.", "weight": 1},
+          {"text": "click clack click clack go the cores.", "weight": 1}
         ]
       },
       "high": {
         "emoji": ["😅", "🥵", "💦", "🏃‍♂️💨", "🔥", "🫠"],
         "messages": [
-          {"text": "cpu has been at {value}% for {duration}. send help.", "weight": 5},
+          {"text": "cpu has been at {value}% for {duration}. send help.", "weight": 4},
           {"text": "{value}% sustained. either you're rendering or something escaped.", "weight": 2},
-          {"text": "fans audible. {duration} like this.", "weight": 2},
-          {"text": "this would be a great moment to check htop.", "weight": 1}
+          {"text": "fans audible. cat's tail is twitching.", "weight": 2},
+          {"text": "this would be a great moment to check htop.", "weight": 2},
+          {"text": "cpu is sweating. cat is judging.", "weight": 2},
+          {"text": "are you mining bitcoin again.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["🥵", "🤯", "🔥", "😵‍💫", "🫨", "💀", "☠️", "🚨"],
         "messages": [
-          {"text": "cpu pegged at {value}%. {duration} of pure suffering.", "weight": 5},
-          {"text": "every core is screaming. consider checking htop.", "weight": 3},
+          {"text": "cpu pegged at {value}%. {duration} of pure suffering.", "weight": 4},
+          {"text": "every core is screaming. cat has fled the scene.", "weight": 3},
           {"text": "the fans have given up. {duration} like this.", "weight": 2},
-          {"text": "if this is a runaway process, kill it. if it's intentional, godspeed.", "weight": 2}
+          {"text": "if this is a runaway process, kill it. if it's intentional, godspeed.", "weight": 2},
+          {"text": "this laptop is now a heater. cat naps on it gratefully.", "weight": 2},
+          {"text": "cpu temperature: please.", "weight": 1}
         ]
       }
     },
@@ -56,14 +66,21 @@
       "idle": {
         "emoji": ["🌱", "🪴", "😺", "💚"],
         "messages": [
-          {"text": "ram easy. plenty of room.", "weight": 3},
-          {"text": "memory: {value}% used. cat unconcerned.", "weight": 1}
+          {"text": "ram easy. plenty of room for thoughts.", "weight": 3},
+          {"text": "memory at {value}%. cat unconcerned.", "weight": 2},
+          {"text": "{value}% used. spacious.", "weight": 2},
+          {"text": "ram is barely working. what a peaceful day.", "weight": 1},
+          {"text": "lots of memory, few demands.", "weight": 1}
         ]
       },
       "normal": {
         "emoji": ["😺", "🐈", "🍃"],
         "messages": [
-          {"text": "ram at {value}%. healthy.", "weight": 3}
+          {"text": "ram at {value}%. healthy.", "weight": 3},
+          {"text": "{value}% used. nominal.", "weight": 2},
+          {"text": "memory: fine. cat: also fine.", "weight": 2},
+          {"text": "no swap drama, no oom drama.", "weight": 1},
+          {"text": "ram is doing ram things.", "weight": 1}
         ]
       },
       "high": {
@@ -71,15 +88,20 @@
         "messages": [
           {"text": "ram has been thirsty for {duration}. {value}% used.", "weight": 4},
           {"text": "{value}% of ram. who's the gluttonous one today?", "weight": 2},
-          {"text": "memory pressure rising. browser tabs?", "weight": 1}
+          {"text": "memory pressure rising. probably browser tabs.", "weight": 2},
+          {"text": "ram is full of feelings. {value}%.", "weight": 2},
+          {"text": "cat suspects firefox. cat is usually right.", "weight": 2},
+          {"text": "{value}% used. the kernel is making hard choices.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["🤢", "🫨", "💀", "☠️", "🆘"],
         "messages": [
-          {"text": "ram at {value}%. oom approaches.", "weight": 5},
-          {"text": "{value}% used. close something.", "weight": 3},
-          {"text": "memory critical for {duration}. swap is next.", "weight": 2}
+          {"text": "ram at {value}%. oom approaches.", "weight": 4},
+          {"text": "{value}% used. close something. anything.", "weight": 3},
+          {"text": "memory critical for {duration}. swap is next.", "weight": 2},
+          {"text": "the kernel is sweating. cat is sweating.", "weight": 2},
+          {"text": "ram says no.", "weight": 1}
         ]
       }
     },
@@ -88,27 +110,39 @@
       "idle": {
         "emoji": ["🪶", "💚", "😺"],
         "messages": [
-          {"text": "no swap in use. ram is enough.", "weight": 3}
+          {"text": "no swap in use. ram is enough.", "weight": 3},
+          {"text": "swap is sleeping. cat approves.", "weight": 2},
+          {"text": "0% swap. clean as a whistle.", "weight": 2},
+          {"text": "the disk is not pretending to be ram today.", "weight": 1}
         ]
       },
       "normal": {
         "emoji": ["🟡", "😼"],
         "messages": [
-          {"text": "swap at {value}%. light use.", "weight": 2}
+          {"text": "swap at {value}%. light use.", "weight": 3},
+          {"text": "a little swap, nothing dramatic.", "weight": 2},
+          {"text": "swap is dipping its toes in.", "weight": 1},
+          {"text": "{value}% used. fine.", "weight": 1}
         ]
       },
       "high": {
         "emoji": ["🥵", "🐢", "💦"],
         "messages": [
           {"text": "swap at {value}%. things may feel sluggish.", "weight": 4},
-          {"text": "swapping for {duration}. ram budget exceeded.", "weight": 2}
+          {"text": "swapping for {duration}. ram budget exceeded.", "weight": 2},
+          {"text": "{value}% in swap. cat hears the disk grumbling.", "weight": 2},
+          {"text": "the disk is moonlighting as ram.", "weight": 1},
+          {"text": "everything is slower because everything is on disk now.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["💀", "🐌", "☠️", "🚨"],
         "messages": [
-          {"text": "swap thrashing. {value}% used, {duration} sustained. this is bad.", "weight": 5},
-          {"text": "the disk is doing ram's job. close things, urgently.", "weight": 3}
+          {"text": "swap thrashing. {value}% used, {duration} sustained. this is bad.", "weight": 4},
+          {"text": "the disk is doing ram's job. close things, urgently.", "weight": 3},
+          {"text": "{value}% swap. cat would suggest a reboot.", "weight": 2},
+          {"text": "page faults are the only sound now.", "weight": 1},
+          {"text": "swap is full. dignity is gone.", "weight": 1}
         ]
       }
     },
@@ -118,20 +152,29 @@
         "emoji": ["🥶", "❄️", "🧊", "🐧"],
         "messages": [
           {"text": "cool as a cucumber. {value}°C.", "weight": 3},
-          {"text": "thermals: chill. {duration} below warm.", "weight": 1}
+          {"text": "thermals chill. cat is thinking of warmer laps.", "weight": 2},
+          {"text": "{value}°C. fridge tier.", "weight": 2},
+          {"text": "the laptop is colder than the cat.", "weight": 1},
+          {"text": "snowman conditions inside the case.", "weight": 1}
         ]
       },
       "normal": {
         "emoji": ["🌡️", "😺", "🌿"],
         "messages": [
-          {"text": "{value}°C. healthy.", "weight": 3}
+          {"text": "{value}°C. healthy.", "weight": 3},
+          {"text": "thermals nominal. cat curls up on the warm spot.", "weight": 2},
+          {"text": "{value}°C. cozy.", "weight": 2},
+          {"text": "perfect lap temperature, says the cat.", "weight": 1}
         ]
       },
       "warm": {
         "emoji": ["☀️", "😅", "🌶️"],
         "messages": [
           {"text": "{value}°C. warm but fine.", "weight": 3},
-          {"text": "running warm for {duration}. fans considering their options.", "weight": 1}
+          {"text": "running warm for {duration}. fans considering their options.", "weight": 2},
+          {"text": "{value}°C. cat moved off the laptop, just in case.", "weight": 2},
+          {"text": "the heat sink has thoughts.", "weight": 1},
+          {"text": "warm enough to brew a cup of tea on.", "weight": 1}
         ]
       },
       "hot": {
@@ -139,15 +182,20 @@
         "messages": [
           {"text": "{value}°C. that's a hot one.", "weight": 4},
           {"text": "thermals climbing for {duration}. is the laptop on a blanket?", "weight": 2},
-          {"text": "fans audible from across the room.", "weight": 1}
+          {"text": "fans audible from across the room.", "weight": 2},
+          {"text": "cat refuses to nap on the case at this temperature.", "weight": 2},
+          {"text": "{value}°C. the cpu is dreaming of an arctic vacation.", "weight": 1},
+          {"text": "you could fry an egg on this thing.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["🔥", "🌋", "🥵", "☠️", "🚨"],
         "messages": [
-          {"text": "{value}°C. throttling imminent if not already.", "weight": 5},
+          {"text": "{value}°C. throttling imminent if not already.", "weight": 4},
           {"text": "thermals critical for {duration}. check vents and ambient temp.", "weight": 3},
-          {"text": "the fan is doing its absolute best.", "weight": 2}
+          {"text": "the fan is doing its absolute best.", "weight": 2},
+          {"text": "this is the temperature of a kitchen oven on low.", "weight": 2},
+          {"text": "cat suggests an ice pack and a stern word with the dust.", "weight": 1}
         ]
       }
     },
@@ -156,26 +204,38 @@
       "off": {
         "emoji": ["🌙", "💤", "😺"],
         "messages": [
-          {"text": "fans off. silence.", "weight": 3}
+          {"text": "fans off. silence.", "weight": 3},
+          {"text": "the fans are dreaming.", "weight": 2},
+          {"text": "no fan, no drama.", "weight": 1},
+          {"text": "passive cooling era.", "weight": 1}
         ]
       },
       "low": {
         "emoji": ["🌀", "🍃"],
         "messages": [
-          {"text": "fans low. background hum.", "weight": 3}
+          {"text": "fans low. background hum.", "weight": 3},
+          {"text": "fans whispering.", "weight": 2},
+          {"text": "the gentle turning of blades.", "weight": 1},
+          {"text": "fan: barely.", "weight": 1}
         ]
       },
       "high": {
         "emoji": ["🌪️", "🌀", "💨"],
         "messages": [
-          {"text": "fans spinning hard for {duration}. something's working.", "weight": 3}
+          {"text": "fans spinning hard for {duration}. something's working.", "weight": 3},
+          {"text": "the fans have a job to do.", "weight": 2},
+          {"text": "audible airflow. cat's whiskers are blowing back.", "weight": 2},
+          {"text": "fan rpm rising.", "weight": 1}
         ]
       },
       "max": {
         "emoji": ["🌪️", "🚁", "🚨"],
         "messages": [
           {"text": "fans at max. {duration} of jet engine impressions.", "weight": 4},
-          {"text": "the fan is begging for mercy.", "weight": 1}
+          {"text": "the fan is begging for mercy.", "weight": 2},
+          {"text": "this laptop wants to take off.", "weight": 2},
+          {"text": "you cannot have a quiet phone call right now.", "weight": 1},
+          {"text": "fan: VWWWWWWWRRRRRRR.", "weight": 1}
         ]
       }
     },
@@ -184,34 +244,51 @@
       "full": {
         "emoji": ["🔋", "😎", "💚", "🐈"],
         "messages": [
-          {"text": "battery full. {value}%.", "weight": 3}
+          {"text": "battery full. {value}%. cat is content.", "weight": 3},
+          {"text": "100%. ready for anything.", "weight": 2},
+          {"text": "fully charged. unplug me you coward.", "weight": 2},
+          {"text": "all the electrons are home.", "weight": 1},
+          {"text": "battery: peak.", "weight": 1}
         ]
       },
       "charging": {
         "emoji": ["🔌", "⚡", "😋", "🥤"],
         "messages": [
           {"text": "charging. {value}%.", "weight": 3},
-          {"text": "drinking electrons. {value}% and counting.", "weight": 1}
+          {"text": "drinking electrons. {value}% and counting.", "weight": 2},
+          {"text": "{value}%, climbing. cat watches the bar fill.", "weight": 2},
+          {"text": "the laptop sips at the wall outlet.", "weight": 1},
+          {"text": "cat envies the laptop's free meal.", "weight": 1}
         ]
       },
       "discharging": {
         "emoji": ["🔋", "🟢", "😺"],
         "messages": [
-          {"text": "on battery. {value}% remaining.", "weight": 3}
+          {"text": "on battery. {value}% remaining.", "weight": 3},
+          {"text": "{value}% left. cat estimates one nap's worth.", "weight": 2},
+          {"text": "running on stored lightning. {value}%.", "weight": 2},
+          {"text": "unplugged and unbothered.", "weight": 1},
+          {"text": "battery: doing its job.", "weight": 1}
         ]
       },
       "low": {
         "emoji": ["🪫", "😩", "😨"],
         "messages": [
           {"text": "battery at {value}%. find a plug.", "weight": 4},
-          {"text": "low for {duration}. last chance to save.", "weight": 2}
+          {"text": "low for {duration}. last chance to save your work.", "weight": 2},
+          {"text": "{value}%. cat is concerned.", "weight": 2},
+          {"text": "the laptop is hungry. feed it.", "weight": 2},
+          {"text": "{value}% left. the panic is rising.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["🪫", "💀", "☠️", "🚨"],
         "messages": [
-          {"text": "battery {value}%. plug in NOW.", "weight": 5},
-          {"text": "if you ignore me the laptop dies.", "weight": 3}
+          {"text": "battery {value}%. plug in NOW.", "weight": 4},
+          {"text": "if you ignore me the laptop dies.", "weight": 3},
+          {"text": "{value}%. cat is screaming.", "weight": 2},
+          {"text": "this is your last warning. {value}%.", "weight": 2},
+          {"text": "the laptop is composing its will.", "weight": 1}
         ]
       }
     },
@@ -220,195 +297,87 @@
       "idle": {
         "emoji": ["💾", "😺", "💚"],
         "messages": [
-          {"text": "disk fine. {value}% used.", "weight": 3}
+          {"text": "disk fine. {value}% used.", "weight": 3},
+          {"text": "plenty of room. cat naps on the spinner.", "weight": 2},
+          {"text": "{value}% used. spacious.", "weight": 2},
+          {"text": "free bytes everywhere.", "weight": 1}
         ]
       },
       "normal": {
         "emoji": ["💾", "🐈"],
         "messages": [
-          {"text": "disk at {value}%. unconcerned.", "weight": 3}
+          {"text": "disk at {value}%. unconcerned.", "weight": 3},
+          {"text": "no panic, no party. {value}%.", "weight": 2},
+          {"text": "the bytes have room to breathe.", "weight": 2},
+          {"text": "{value}% used. fine.", "weight": 1}
         ]
       },
       "filling": {
         "emoji": ["🤰", "📦", "😅"],
         "messages": [
           {"text": "disk at {value}%. consider tidying.", "weight": 3},
-          {"text": "{value}% used. node_modules suspect.", "weight": 1}
+          {"text": "{value}% used. node_modules suspect.", "weight": 2},
+          {"text": "cat suspects a hoard of docker images.", "weight": 2},
+          {"text": "{value}% on disk. things are accumulating.", "weight": 2},
+          {"text": "the disk is filling up like a bath. with bytes.", "weight": 1}
         ]
       },
       "high": {
         "emoji": ["🤰", "🧹", "🗑️", "😰"],
         "messages": [
           {"text": "disk at {value}%. things will start failing soon.", "weight": 4},
-          {"text": "filling for {duration}. find the big files.", "weight": 2}
+          {"text": "filling for {duration}. find the big files.", "weight": 2},
+          {"text": "{value}% full. cat is judging your downloads folder.", "weight": 2},
+          {"text": "consider du -sh ~ and weeping.", "weight": 2},
+          {"text": "{value}%. delete something.", "weight": 1}
         ]
       },
       "critical": {
         "emoji": ["🚨", "💀", "☠️", "🆘"],
         "messages": [
-          {"text": "disk {value}% full. logs may stop, builds may fail.", "weight": 5},
-          {"text": "you have approximately zero spare gigabytes.", "weight": 3}
+          {"text": "disk {value}% full. logs may stop, builds may fail.", "weight": 4},
+          {"text": "you have approximately zero spare gigabytes.", "weight": 3},
+          {"text": "{value}% full. the disk is begging.", "weight": 2},
+          {"text": "free space: a memory.", "weight": 2},
+          {"text": "rm something. anything.", "weight": 1}
         ]
       }
     },
 
-    "disk_io": {
+    "load": {
       "idle": {
-        "emoji": ["😴", "💤"],
+        "emoji": ["💤", "😴", "🌿"],
         "messages": [
-          {"text": "disk idle.", "weight": 3}
-        ]
-      },
-      "busy": {
-        "emoji": ["💾", "📀", "⚙️"],
-        "messages": [
-          {"text": "disk busy. backup or build?", "weight": 3}
-        ]
-      },
-      "high": {
-        "emoji": ["🐢", "💾", "💦"],
-        "messages": [
-          {"text": "disk grinding for {duration}. {value} MB/s.", "weight": 3}
-        ]
-      },
-      "critical": {
-        "emoji": ["🐌", "🐢", "🚨"],
-        "messages": [
-          {"text": "disk saturated. everything else is waiting on it.", "weight": 4}
-        ]
-      }
-    },
-
-    "network": {
-      "idle": {
-        "emoji": ["😴", "🌙", "📵"],
-        "messages": [
-          {"text": "network quiet.", "weight": 3}
-        ]
-      },
-      "active": {
-        "emoji": ["📡", "🌐", "📶"],
-        "messages": [
-          {"text": "network active. {value} kB/s.", "weight": 3}
-        ]
-      },
-      "saturated": {
-        "emoji": ["📡", "🌪️", "💨"],
-        "messages": [
-          {"text": "network saturated for {duration}. big download or upload.", "weight": 3},
-          {"text": "the pipes are full.", "weight": 1}
-        ]
-      }
-    },
-
-    "gpu": {
-      "idle": {
-        "emoji": ["😴", "💤", "🌙"],
-        "messages": [
-          {"text": "gpu idle.", "weight": 3}
-        ]
-      },
-      "busy": {
-        "emoji": ["🎮", "🖥️", "⚙️"],
-        "messages": [
-          {"text": "gpu at {value}%. game or render?", "weight": 3}
-        ]
-      },
-      "high": {
-        "emoji": ["🔥", "🥵", "🎮"],
-        "messages": [
-          {"text": "gpu hammered for {duration}. {value}%.", "weight": 4}
-        ]
-      },
-      "critical": {
-        "emoji": ["🔥", "🌋", "💀"],
-        "messages": [
-          {"text": "gpu at {value}% and hot. check ventilation.", "weight": 4}
-        ]
-      }
-    },
-
-    "brightness": {
-      "dark": {
-        "emoji": ["🌙", "🦉", "🌚"],
-        "messages": [
-          {"text": "screen dim. {value}%. night mode.", "weight": 3},
-          {"text": "deep night brightness. battery thanks you.", "weight": 1}
+          {"text": "load average is small. life is good.", "weight": 3},
+          {"text": "cat sees no queue.", "weight": 2},
+          {"text": "load: barely.", "weight": 2},
+          {"text": "the runqueue is empty.", "weight": 1}
         ]
       },
       "normal": {
-        "emoji": ["🌗", "💡"],
+        "emoji": ["😺", "🐾"],
         "messages": [
-          {"text": "brightness normal.", "weight": 2}
+          {"text": "load average normal: {value}.", "weight": 3},
+          {"text": "{value}. healthy.", "weight": 2},
+          {"text": "load: nominal. cat has zero notes.", "weight": 1}
         ]
       },
-      "bright": {
-        "emoji": ["☀️", "😎", "🌞"],
+      "busy": {
+        "emoji": ["🏃", "💨"],
         "messages": [
-          {"text": "brightness max. sun mode.", "weight": 3}
-        ]
-      }
-    },
-
-    "idle": {
-      "active": {
-        "emoji": ["😺", "👀"],
-        "messages": [
-          {"text": "active.", "weight": 2}
+          {"text": "load average elevated for {duration}.", "weight": 3},
+          {"text": "load {value}. the queue has thoughts.", "weight": 2},
+          {"text": "things are happening.", "weight": 2},
+          {"text": "the cores are working. cat watches.", "weight": 1}
         ]
       },
-      "away": {
-        "emoji": ["😴", "💤", "🌙"],
+      "critical": {
+        "emoji": ["💀", "🚨", "🥵"],
         "messages": [
-          {"text": "you've been away {duration}. cat watches the screensaver.", "weight": 3}
-        ]
-      }
-    },
-
-    "audio": {
-      "muted": {
-        "emoji": ["🙊", "🔇", "🤫"],
-        "messages": [
-          {"text": "muted. silent cat.", "weight": 2}
-        ]
-      },
-      "playing": {
-        "emoji": ["🎵", "🎶", "🙉"],
-        "messages": [
-          {"text": "audio playing.", "weight": 2}
-        ]
-      },
-      "loud": {
-        "emoji": ["🙉", "📢", "🔊"],
-        "messages": [
-          {"text": "loud. consider the neighbours.", "weight": 2}
-        ]
-      }
-    },
-
-    "webcam": {
-      "off": {
-        "emoji": ["😺", "🙈"],
-        "messages": [{"text": "webcam off.", "weight": 1}]
-      },
-      "on": {
-        "emoji": ["👀", "🎥", "📹"],
-        "messages": [
-          {"text": "webcam on. someone's watching.", "weight": 3},
-          {"text": "you're on camera.", "weight": 1}
-        ]
-      }
-    },
-
-    "mic": {
-      "off": {
-        "emoji": ["🙊", "😺"],
-        "messages": [{"text": "mic off.", "weight": 1}]
-      },
-      "on": {
-        "emoji": ["🎤", "🎙️", "🦻"],
-        "messages": [
-          {"text": "mic on. someone's listening.", "weight": 3}
+          {"text": "load average {value} for {duration}. queue is deep.", "weight": 4},
+          {"text": "the runqueue is overflowing.", "weight": 2},
+          {"text": "everything is waiting on something.", "weight": 2},
+          {"text": "cat suggests fewer simultaneous tabs.", "weight": 1}
         ]
       }
     },
@@ -417,80 +386,29 @@
       "fresh": {
         "emoji": ["🌱", "✨"],
         "messages": [
-          {"text": "fresh boot. {duration} since power-on.", "weight": 2}
+          {"text": "fresh boot. {duration} since power-on.", "weight": 3},
+          {"text": "the laptop is freshly minted.", "weight": 2},
+          {"text": "uptime: barely. cat is suspicious.", "weight": 1},
+          {"text": "first cup of memory still hot.", "weight": 1}
         ]
       },
       "long": {
         "emoji": ["🐈", "📅", "🧓"],
         "messages": [
-          {"text": "{duration} of uptime. impressive.", "weight": 3}
+          {"text": "{duration} of uptime. impressive.", "weight": 3},
+          {"text": "this laptop has been awake longer than the cat.", "weight": 2},
+          {"text": "{duration} on. consistent.", "weight": 2},
+          {"text": "stable as a sleeping cat.", "weight": 1}
         ]
       },
       "ancient": {
         "emoji": ["🧓", "🪦", "🦴"],
         "messages": [
-          {"text": "{duration} uptime. when did you last reboot, exactly?", "weight": 3}
-        ]
-      }
-    },
-
-    "time_of_day": {
-      "morning": {
-        "emoji": ["🌅", "☕", "🥐"],
-        "messages": [
-          {"text": "morning. coffee?", "weight": 2}
-        ]
-      },
-      "afternoon": {
-        "emoji": ["☀️", "🐈"],
-        "messages": [
-          {"text": "afternoon vibes.", "weight": 2}
-        ]
-      },
-      "evening": {
-        "emoji": ["🌆", "🍷"],
-        "messages": [
-          {"text": "evening. wind down.", "weight": 2}
-        ]
-      },
-      "night": {
-        "emoji": ["🌙", "🦉"],
-        "messages": [
-          {"text": "night.", "weight": 2}
-        ]
-      },
-      "late_night": {
-        "emoji": ["🦉", "🌃", "💀"],
-        "messages": [
-          {"text": "it's {value}. consider sleep.", "weight": 4},
-          {"text": "the cat doesn't approve of these hours.", "weight": 1}
-        ]
-      }
-    },
-
-    "composite": {
-      "thermal_throttling": {
-        "emoji": ["🥵🐌", "🔥", "🐢"],
-        "messages": [
-          {"text": "thermal throttling. cpu held back by heat for {duration}.", "weight": 4}
-        ]
-      },
-      "ghost_load": {
-        "emoji": ["👻", "🤔"],
-        "messages": [
-          {"text": "load average elevated but no obvious culprit. ghost load.", "weight": 3}
-        ]
-      },
-      "just_woke_up": {
-        "emoji": ["🥱", "😪"],
-        "messages": [
-          {"text": "just resumed from sleep. give it a moment.", "weight": 2}
-        ]
-      },
-      "backup_running": {
-        "emoji": ["💾🏃", "📦"],
-        "messages": [
-          {"text": "looks like a backup is running. let it finish.", "weight": 3}
+          {"text": "{duration} uptime. when did you last reboot, exactly?", "weight": 4},
+          {"text": "this laptop has seen things.", "weight": 2},
+          {"text": "{duration}. the kernel deserves a rest.", "weight": 2},
+          {"text": "ancient. cat is impressed but worried.", "weight": 2},
+          {"text": "consider rebooting before the cosmic rays do it for you.", "weight": 1}
         ]
       }
     }

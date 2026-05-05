@@ -1,3 +1,34 @@
+meowtrics (0.1.4-1) unstable; urgency=low
+
+  * Tray priority: never let "boring forever" sensors win the icon
+    - uptime locked to "ancient" after a week and the tray was stuck on the
+      uptime icon forever. Boring states (idle, fresh, full, long, ancient,
+      off, cool) are now excluded from the icon-priority race; they only win
+      if literally nothing else is reporting.
+  * Tray tooltip shows every sensor
+    - The hover tooltip now lists all sensors with their emoji, state, and
+      value, not just the headline message. The active sensor's prose
+      message stays as the first line.
+  * postinst: refresh plasmashell on upgrade
+    - On `apt install --reinstall` or version upgrade, the postinst now
+      runs `kquitapp6 plasmashell && kstart plasmashell` for any user with
+      an active session, so the new plasmoid QML is picked up without
+      manual intervention. Fresh installs skip this since there's no cached
+      copy to invalidate.
+  * postinst: restart the daemon on upgrade
+    - The user-service start-on-install now uses `restart` instead of
+      `start`, so an upgrade picks up the new binary even when the unit is
+      already active.
+  * messages.json: cat narrator, more variety
+    - Trimmed sensor list to the 8 actually implemented (cpu, ram, swap,
+      thermal, battery, disk, load, uptime). Other sensors will reappear
+      when their reader code lands.
+    - Rewrote message templates from the cat's POV. 4-7 weighted lines per
+      state, ~180 total templates. Tooltip will pick a random one each
+      tick and the user actually sees variety now.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 23:20:00 +0000
+
 meowtrics (0.1.3-1) unstable; urgency=low
 
   * Fatal panic on startup

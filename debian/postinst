@@ -30,7 +30,28 @@ enable_for_user() {
         sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
             systemctl --user daemon-reload 2>/dev/null || true
         sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
-            systemctl --user start meowtrics.service 2>/dev/null || true
+            systemctl --user restart meowtrics.service 2>/dev/null || true
+    fi
+}
+
+# On upgrade, force Plasma to re-read the plasmoid QML. Plasma caches the
+# loaded widget in plasmashell's memory and will keep showing the old
+# version (and any QML errors that came with it) until the cache is cleared.
+# We replace plasmashell in-place: kquitapp + kstart blanks the panel for ~1s
+# then it comes back with the fresh QML.
+restart_plasmashell_for_upgrade() {
+    user="$1"
+    home=$(getent passwd "$user" | cut -d: -f6)
+    [ -d "$home" ] || return 0
+    uid=$(id -u "$user" 2>/dev/null || echo "")
+    [ -n "$uid" ] && [ -d "/run/user/$uid" ] || return 0
+    # Only act if plasmashell is actually running for this user.
+    pgrep -u "$user" -x plasmashell >/dev/null 2>&1 || return 0
+    if command -v kquitapp6 >/dev/null 2>&1 && command -v kstart >/dev/null 2>&1; then
+        sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
+            DISPLAY="${DISPLAY:-:0}" \
+            sh -c 'kquitapp6 plasmashell >/dev/null 2>&1 && kstart plasmashell >/dev/null 2>&1' \
+            >/dev/null 2>&1 || true
     fi
 }
 
@@ -54,10 +75,20 @@ case "$1" in
 
         # Auto-enable the user service for every real user on the system.
         # This means `apt install meowtrics` is enough; no manual systemctl
-        # --user enable step is required.
+        # --user enable step is required. enable_for_user also restarts
+        # the daemon so a fresh binary is picked up on upgrade.
         for user in $(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1}'); do
             enable_for_user "$user"
         done
+
+        # On upgrade ($2 is the previously-configured version), force Plasma
+        # to reload the plasmoid QML. On fresh install $2 is empty and there's
+        # nothing to reload yet.
+        if [ -n "$2" ]; then
+            for user in $(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1}'); do
+                restart_plasmashell_for_upgrade "$user"
+            done
+        fi
 
         cat <<'EOF'
 
