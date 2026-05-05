@@ -7,7 +7,9 @@ use tokio::fs;
 use super::{Reading, SensorId};
 
 pub async fn read() -> Result<Reading> {
-    let s = fs::read_to_string("/proc/loadavg").await.context("reading /proc/loadavg")?;
+    let s = fs::read_to_string("/proc/loadavg")
+        .await
+        .context("reading /proc/loadavg")?;
     let one_min: f64 = s
         .split_whitespace()
         .next()

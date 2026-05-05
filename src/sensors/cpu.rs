@@ -18,11 +18,10 @@ struct CpuTimes {
 }
 
 async fn read_cpu_times() -> Result<CpuTimes> {
-    let stat = fs::read_to_string("/proc/stat").await.context("reading /proc/stat")?;
-    let line = stat
-        .lines()
-        .next()
-        .context("empty /proc/stat")?;
+    let stat = fs::read_to_string("/proc/stat")
+        .await
+        .context("reading /proc/stat")?;
+    let line = stat.lines().next().context("empty /proc/stat")?;
     // Format: "cpu  user nice system idle iowait irq softirq steal guest guest_nice"
     let fields: Vec<u64> = line
         .split_whitespace()

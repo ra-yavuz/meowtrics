@@ -120,10 +120,7 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
             _ => 1,
         }
     };
-    let active = snap
-        .iter()
-        .max_by_key(|s| priority(s.state))
-        .cloned();
+    let active = snap.iter().max_by_key(|s| priority(s.state)).cloned();
 
     let (emoji, message, icon_name) = if let Some(a) = active {
         let emoji = db
@@ -135,7 +132,11 @@ pub fn render_state(snap: &[StableState], db: &crate::messages::Database) -> Tra
         let icon = freedesktop_icon_for(a.state);
         (emoji, msg, icon)
     } else {
-        ("🐈".to_string(), "starting up".to_string(), "face-smile".to_string())
+        (
+            "🐈".to_string(),
+            "starting up".to_string(),
+            "face-smile".to_string(),
+        )
     };
 
     TrayState {

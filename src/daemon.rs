@@ -60,10 +60,11 @@ pub async fn print_status(short: bool) -> Result<()> {
     sm.ingest(&readings);
     let snap = sm.snapshot();
     if short {
-        if let Some(s) = snap
-            .iter()
-            .max_by(|a, b| a.last_value.partial_cmp(&b.last_value).unwrap_or(std::cmp::Ordering::Equal))
-        {
+        if let Some(s) = snap.iter().max_by(|a, b| {
+            a.last_value
+                .partial_cmp(&b.last_value)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }) {
             let emoji = db
                 .as_ref()
                 .and_then(|d| d.pick_emoji(s.sensor.as_str(), s.state))

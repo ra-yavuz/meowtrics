@@ -19,7 +19,6 @@ REPO_OWNER="ra-yavuz"
 REPO_NAME="meowtrics"
 APT_REPO_URL="https://ra-yavuz.github.io/apt"
 APT_KEY_URL="${APT_REPO_URL}/pubkey.gpg"
-RELEASE_LATEST_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download"
 
 red()   { printf '\033[31m%s\033[0m\n' "$*"; }
 green() { printf '\033[32m%s\033[0m\n' "$*"; }

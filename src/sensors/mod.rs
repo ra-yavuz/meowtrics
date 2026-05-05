@@ -5,13 +5,13 @@
 //! consumes a stream of readings and derives a stable `SensorState` for each, which the
 //! messages layer and the tray frontend then render.
 
+pub mod battery;
 pub mod cpu;
+pub mod disk;
+pub mod load;
 pub mod ram;
 pub mod swap;
 pub mod thermal;
-pub mod battery;
-pub mod disk;
-pub mod load;
 pub mod uptime;
 
 use serde::{Deserialize, Serialize};

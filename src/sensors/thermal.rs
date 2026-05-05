@@ -7,7 +7,9 @@ use tokio::fs;
 use super::{Reading, SensorId};
 
 pub async fn read() -> Result<Reading> {
-    let mut entries = fs::read_dir("/sys/class/thermal").await.context("reading /sys/class/thermal")?;
+    let mut entries = fs::read_dir("/sys/class/thermal")
+        .await
+        .context("reading /sys/class/thermal")?;
     let mut hottest: Option<f64> = None;
     while let Ok(Some(entry)) = entries.next_entry().await {
         let name = entry.file_name();

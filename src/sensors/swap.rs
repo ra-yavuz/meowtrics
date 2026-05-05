@@ -7,7 +7,9 @@ use tokio::fs;
 use super::{Reading, SensorId};
 
 pub async fn read() -> Result<Reading> {
-    let s = fs::read_to_string("/proc/meminfo").await.context("reading /proc/meminfo")?;
+    let s = fs::read_to_string("/proc/meminfo")
+        .await
+        .context("reading /proc/meminfo")?;
     let mut total: Option<u64> = None;
     let mut free: Option<u64> = None;
     for line in s.lines() {

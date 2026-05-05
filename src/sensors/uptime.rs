@@ -6,7 +6,9 @@ use tokio::fs;
 use super::{Reading, SensorId};
 
 pub async fn read() -> Result<Reading> {
-    let s = fs::read_to_string("/proc/uptime").await.context("reading /proc/uptime")?;
+    let s = fs::read_to_string("/proc/uptime")
+        .await
+        .context("reading /proc/uptime")?;
     let secs: f64 = s
         .split_whitespace()
         .next()
