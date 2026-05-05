@@ -1,28 +1,33 @@
-// The popup shown when the user clicks the panel emoji: large emoji on top,
-// a one-line headline, and a per-sensor list with state and last value.
+// The popup shown when the user clicks the panel cat: large animated
+// sprite on top, the catchy random headline, then a per-sensor table.
 
 import QtQuick
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import org.kde.plasma.components as PC3
 import org.kde.plasma.core as PlasmaCore
+import org.kde.kirigami as Kirigami
 
 ColumnLayout {
     id: full
     spacing: PlasmaCore.Units.smallSpacing
 
-    property string activeEmoji: "🐈"
+    property string animation: "sit_calm"
     property string headline: ""
     property var sensors: []
 
     Layout.preferredWidth: 320
     Layout.preferredHeight: 360
 
-    Text {
+    // Larger version of the same sprite the panel shows.
+    Item {
         Layout.alignment: Qt.AlignHCenter
-        text: full.activeEmoji
-        font.pixelSize: 96
-        font.family: "Noto Color Emoji, Twemoji Mozilla, Apple Color Emoji"
-        renderType: Text.NativeRendering
+        Layout.preferredWidth: 96
+        Layout.preferredHeight: 96
+        CompactRepresentation {
+            anchors.fill: parent
+            animation: full.animation
+        }
     }
 
     PC3.Label {

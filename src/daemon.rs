@@ -133,6 +133,80 @@ pub async fn print_json() -> Result<()> {
     Ok(())
 }
 
+/// Emit the pre-classified tray state as JSON for the plasmoid:
+///   { "animation": "wash_face",
+///     "headline": "cpu has been at 92% for 3m. send help.",
+///     "sensors": [ { "sensor": "cpu", "state": "high",
+///                    "value": 92.4, "emoji": "🥵" }, ... ] }
+///
+/// The plasmoid is a dumb renderer: it picks frames from `animation`,
+/// shows `headline` in the popup, and tabulates `sensors` in the body.
+pub async fn print_tray_state() -> Result<()> {
+    use serde_json::json;
+    let db = Database::load().ok();
+    let readings = read_all().await;
+    let mut sm = StateMachine::new();
+    sm.ingest(&readings);
+    let snap = sm.snapshot();
+
+    // Mirror the SNI priority logic so the plasmoid icon matches the tray icon.
+    let priority = |state: &str| -> i8 {
+        match state {
+            "critical" => 5,
+            "high" | "hot" | "low" => 4,
+            "filling" | "warm" | "busy" => 3,
+            "normal" | "charging" | "discharging" => 1,
+            "idle" | "fresh" | "full" | "long" | "ancient" | "off" | "cool" => -1,
+            _ => 0,
+        }
+    };
+    let active = snap
+        .iter()
+        .filter(|s| priority(s.state) >= 0)
+        .max_by_key(|s| priority(s.state))
+        .or_else(|| snap.iter().max_by_key(|s| priority(s.state)));
+
+    let (animation, headline) = match active {
+        Some(a) => {
+            let h = db
+                .as_ref()
+                .and_then(|d| d.render_message(a))
+                .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state));
+            (
+                crate::sprites::animation_for(a.sensor.as_str(), a.state).to_string(),
+                h,
+            )
+        }
+        None => ("sit_calm".to_string(), "starting up".to_string()),
+    };
+
+    let sensors: Vec<_> = snap
+        .iter()
+        .map(|s| {
+            let emoji = db
+                .as_ref()
+                .and_then(|d| d.pick_emoji(s.sensor.as_str(), s.state))
+                .unwrap_or_default();
+            json!({
+                "sensor": s.sensor.as_str(),
+                "state": s.state,
+                "value": s.last_value,
+                "emoji": emoji,
+            })
+        })
+        .collect();
+
+    println!(
+        "{}",
+        serde_json::to_string(&json!({
+            "animation": animation,
+            "headline": headline,
+            "sensors": sensors,
+        }))?
+    );
+    Ok(())
+}
+
 pub async fn print_sensors() -> Result<()> {
     use crate::sensors::SensorId;
     for id in SensorId::all() {

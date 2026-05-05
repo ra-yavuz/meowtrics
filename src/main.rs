@@ -38,6 +38,9 @@ enum Cmd {
     },
     /// Print sensor readings as JSON. For waybar custom modules.
     Json,
+    /// Print pre-classified tray state as JSON: `{animation, headline, sensors[]}`.
+    /// Consumed by the KDE plasmoid; plasmoid is then a dumb renderer.
+    TrayState,
     /// List all known sensors and their current state.
     Sensors,
     /// Trigger an immediate refresh of the message database from the project Pages site.
@@ -58,6 +61,7 @@ async fn main() -> Result<()> {
         Cmd::Daemon => daemon::run().await,
         Cmd::Status { short } => daemon::print_status(short).await,
         Cmd::Json => daemon::print_json().await,
+        Cmd::TrayState => daemon::print_tray_state().await,
         Cmd::Sensors => daemon::print_sensors().await,
         Cmd::Refresh => messages::refresh_now().await,
     }

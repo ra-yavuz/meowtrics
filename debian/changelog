@@ -1,3 +1,23 @@
+meowtrics (0.2.2-1) unstable; urgency=low
+
+  * Plasmoid widget renders Oneko sprites
+    - Replaced the static emoji Text element in CompactRepresentation.qml
+      with an Image driven by a frame timer, mirroring the SNI tray's
+      sprite engine. Six animations (sleep / sit_calm / sit_alert /
+      wash_face / run_panic / scratch), per-frame durations exactly
+      matching src/sprites.rs.
+    - Sprites are tinted to Kirigami.Theme.textColor via ColorOverlay
+      so they read on both Breeze Light and Breeze Dark panels.
+    - The popup (FullRepresentation) shows a 96x96 version of the same
+      animation, the catchy headline, and the per-sensor table.
+  * New CLI: `meowtrics tray-state`
+    - Emits pre-classified JSON: { animation, headline, sensors[] }.
+      The plasmoid is now a dumb renderer; sensor priority and animation
+      mapping live in the daemon (single source of truth, mirrors the
+      logic the SNI tray uses).
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 00:30:00 +0000
+
 meowtrics (0.2.1-1) unstable; urgency=low
 
   * Sprite alpha was wrong
