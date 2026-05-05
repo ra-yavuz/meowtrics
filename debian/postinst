@@ -2,10 +2,40 @@
 # postinst for meowtrics
 set -e
 
+# Enable the meowtrics user service for one user, even though we run as root.
+# Plain `systemctl --user enable` from postinst would target root's user
+# manager (or no manager at all). Instead we manipulate the symlinks
+# directly under each user's $HOME, which is the canonical pattern for
+# distro-shipped user units.
+enable_for_user() {
+    user="$1"
+    home=$(getent passwd "$user" | cut -d: -f6)
+    [ -n "$home" ] && [ -d "$home" ] || return 0
+    [ "$user" = "root" ] && return 0
+    # Skip system / nologin accounts.
+    shell=$(getent passwd "$user" | cut -d: -f7)
+    case "$shell" in
+        */nologin|*/false|"") return 0 ;;
+    esac
+
+    target_dir="$home/.config/systemd/user/graphical-session.target.wants"
+    install -d -o "$user" -g "$user" -m 0700 "$home/.config" "$home/.config/systemd" "$home/.config/systemd/user" "$target_dir" 2>/dev/null || true
+    # Symlink the unit so it activates with the graphical session.
+    ln -sf /usr/lib/systemd/user/meowtrics.service "$target_dir/meowtrics.service"
+    chown -h "$user":"$user" "$target_dir/meowtrics.service" 2>/dev/null || true
+
+    # If the user has an active session right now, start the unit immediately.
+    uid=$(id -u "$user" 2>/dev/null || echo "")
+    if [ -n "$uid" ] && [ -d "/run/user/$uid" ]; then
+        sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
+            systemctl --user daemon-reload 2>/dev/null || true
+        sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
+            systemctl --user start meowtrics.service 2>/dev/null || true
+    fi
+}
+
 case "$1" in
     configure)
-        # Reload user units so `systemctl --user enable meowtrics` works
-        # without the user having to log out and back in.
         if command -v systemctl >/dev/null 2>&1; then
             systemctl daemon-reload >/dev/null 2>&1 || true
         fi
@@ -22,22 +52,27 @@ case "$1" in
             kbuildsycoca5 --noincremental >/dev/null 2>&1 || true
         fi
 
-        # Print the disclaimer at install time. Users see this before they
-        # ever run the daemon, in addition to the README, --help output, and
-        # daemon startup log.
+        # Auto-enable the user service for every real user on the system.
+        # This means `apt install meowtrics` is enough; no manual systemctl
+        # --user enable step is required.
+        for user in $(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1}'); do
+            enable_for_user "$user"
+        done
+
         cat <<'EOF'
 
-meowtrics installed.
+meowtrics installed and enabled. The tray icon should appear in your
+system tray within a few seconds (KDE / GNOME-with-AppIndicator / XFCE /
+Cinnamon / Budgie / MATE / LXQt / Sway+waybar / etc).
+
+KDE Plasma 6 widget: right-click your panel, Add Widgets, search "meowtrics".
 
 DISCLAIMER: meowtrics is provided AS IS, WITHOUT WARRANTY OF ANY KIND.
 The author is not liable for any damage to hardware, data, or system.
-By running this software you accept full responsibility.
+By running this software you accept full responsibility. Personal open
+source project, free for personal use, no support guarantee.
 
-This is a personal open-source project, free for personal use, with no
-support guarantee. Full disclaimer: /usr/share/doc/meowtrics/README.md
-
-To start: systemctl --user enable --now meowtrics
-KDE Plasma 6 widget: right-click your panel, Add Widgets, search "meowtrics"
+Full disclaimer: /usr/share/doc/meowtrics/README.md
 
 EOF
         ;;

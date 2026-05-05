@@ -1,10 +1,25 @@
 #!/bin/sh
 # postrm for meowtrics
-#
-# On `purge`, also clears per-user config and cache directories so a clean
-# remove leaves nothing behind. dpkg has no native concept of per-user state,
-# so we walk /home and the root user's home explicitly.
 set -e
+
+# Stop and disable the meowtrics user service for every user that has it
+# enabled. Mirrors the auto-enable path in postinst.
+disable_for_user() {
+    user="$1"
+    home=$(getent passwd "$user" | cut -d: -f6)
+    [ -n "$home" ] && [ -d "$home" ] || return 0
+
+    uid=$(id -u "$user" 2>/dev/null || echo "")
+    if [ -n "$uid" ] && [ -d "/run/user/$uid" ]; then
+        sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
+            systemctl --user stop meowtrics.service 2>/dev/null || true
+    fi
+    rm -f "$home/.config/systemd/user/graphical-session.target.wants/meowtrics.service" 2>/dev/null || true
+    if [ -n "$uid" ] && [ -d "/run/user/$uid" ]; then
+        sudo -u "$user" XDG_RUNTIME_DIR="/run/user/$uid" \
+            systemctl --user daemon-reload 2>/dev/null || true
+    fi
+}
 
 cleanup_user_state() {
     home="$1"
@@ -14,16 +29,16 @@ cleanup_user_state() {
 
 case "$1" in
     purge)
-        # Wipe per-user config + cache for every real user on the system.
-        for d in /home/*; do
-            cleanup_user_state "$d"
+        for user in $(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1}'); do
+            disable_for_user "$user"
+            home=$(getent passwd "$user" | cut -d: -f6)
+            cleanup_user_state "$home"
         done
         cleanup_user_state /root
 
         if command -v systemctl >/dev/null 2>&1; then
             systemctl daemon-reload >/dev/null 2>&1 || true
         fi
-        # Refresh icon cache so the meowtrics icon disappears from any chooser.
         if [ -x /usr/bin/gtk-update-icon-cache ]; then
             /usr/bin/gtk-update-icon-cache -q -t /usr/share/icons/hicolor 2>/dev/null || true
         fi
@@ -32,6 +47,12 @@ case "$1" in
         fi
         ;;
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        # On plain `remove` (not purge), tear down the user enables so the
+        # service stops trying to start, but leave per-user config + cache
+        # alone so a reinstall picks up where we left off.
+        for user in $(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 {print $1}'); do
+            disable_for_user "$user"
+        done
         if command -v systemctl >/dev/null 2>&1; then
             systemctl daemon-reload >/dev/null 2>&1 || true
         fi

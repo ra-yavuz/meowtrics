@@ -18,6 +18,13 @@ meowtrics (0.1.2-1) unstable; urgency=low
   * Plasmoid icon
     - Use the icon-theme name "meowtrics" instead of a Qt.resolvedUrl
       file:// path. The PNG is shipped to /usr/share/icons/hicolor.
+  * Auto-enable the user service on install
+    - postinst now creates ~/.config/systemd/user/graphical-session.target.wants/
+      meowtrics.service for every real user (UID >= 1000) and starts the unit
+      immediately for any user with an active session, so `apt install meowtrics`
+      is enough; no manual `systemctl --user enable --now meowtrics` step.
+    - postrm tears the symlinks back down on remove and stops the unit; purge
+      additionally clears per-user config and cache.
 
  -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 22:30:00 +0000
 
