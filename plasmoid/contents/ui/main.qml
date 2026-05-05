@@ -1,19 +1,16 @@
 // meowtrics KDE Plasma 6 plasmoid root.
 //
-// Thin client over the meowtrics daemon. The daemon owns sensor reading,
-// state machines, and message selection; the plasmoid renders the active
-// emoji in the panel and a popup on click.
-//
-// State is pulled by running `meowtrics json` on a timer (Plasma 6 QML's
-// Plasma5Support.DataSource ProcessRunner). The richer D-Bus path is the
-// v0.2 plan once the rendering is solid.
+// Plasma 6 imports do NOT use version suffixes; that was the Plasma 5
+// pattern. Using "org.kde.plasma.plasmoid 2.0" silently downgrades the
+// loaded module so PlasmoidItem.toolTipMainText / toolTipSubText do not
+// exist.
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import org.kde.plasma.plasmoid 2.0
+import QtQuick
+import QtQuick.Layouts
+import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents
-import org.kde.plasma.plasma5support 2.0 as P5Support
+import org.kde.plasma.components as PC3
+import org.kde.plasma.plasma5support as P5Support
 
 PlasmoidItem {
     id: root
@@ -22,7 +19,7 @@ PlasmoidItem {
     property string headline: "starting up"
     property var sensors: []
 
-    Plasmoid.icon: Qt.resolvedUrl("../icons/meowtrics.png")
+    Plasmoid.icon: "meowtrics"
     toolTipMainText: "meowtrics"
     toolTipSubText: root.headline
 
@@ -49,12 +46,8 @@ PlasmoidItem {
                 const arr = JSON.parse(stdout);
                 root.sensors = arr;
                 if (arr.length > 0) {
-                    // Pick the highest "value" sensor as the active one for the panel.
                     let pick = arr[0];
                     for (const s of arr) if ((s.value || 0) > (pick.value || 0)) pick = s;
-                    // Tray emoji + headline updates would normally come from the daemon
-                    // through D-Bus. Until that's wired, the JSON-only path keeps the
-                    // sensor table in the popup live but leaves the panel emoji static.
                     root.headline = pick.sensor + " " + Math.round(pick.value);
                 }
             } catch (e) {

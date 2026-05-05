@@ -1,7 +1,11 @@
-// What's shown in the panel: the animated emoji at panel size.
+// What's shown in the panel slot: the active emoji at panel size.
+//
+// In Plasma 6 this representation is loaded by the panel; clicking it expands
+// to the full representation via PlasmoidItem.expanded (handled in main.qml).
 
-import QtQuick 2.15
+import QtQuick
 import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.plasmoid
 
 Item {
     id: compact
@@ -22,7 +26,6 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
 
-        // Subtle fade on emoji change so frames don't pop.
         Behavior on text {
             SequentialAnimation {
                 NumberAnimation { target: emojiText; property: "opacity"; to: 0.4; duration: 120 }
@@ -35,6 +38,6 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
-        onClicked: plasmoid.expanded = !plasmoid.expanded
+        onClicked: Plasmoid.expanded = !Plasmoid.expanded
     }
 }

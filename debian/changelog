@@ -1,3 +1,26 @@
+meowtrics (0.1.2-1) unstable; urgency=low
+
+  * Daemon never started after install
+    - The systemd user unit had hardening directives (ProtectSystem,
+      ProtectHome, PrivateTmp, MemoryDenyWriteExecute, SystemCallFilter)
+      that require CAP_SYS_ADMIN and fail with status=218/CAPABILITIES
+      under the user manager. Stripped to NoNewPrivileges, RestrictRealtime,
+      LockPersonality only.
+    - Result: SNI tray icon now actually appears (the daemon needs to run
+      to register the StatusNotifierItem; previously it was crash-looping).
+  * Plasmoid imports updated to Plasma 6 conventions
+    - Replaced versioned imports ("org.kde.plasma.plasmoid 2.0",
+      "QtQuick 2.15") with the Plasma 6 form (no version, "QtQuick").
+    - With the old versioned import the loaded module silently downgraded
+      to a Plasma 5 PlasmoidItem that has no toolTipMainText/toolTipSubText
+      properties, hence the load error "Cannot assign to non-existent
+      property toolTipSubText".
+  * Plasmoid icon
+    - Use the icon-theme name "meowtrics" instead of a Qt.resolvedUrl
+      file:// path. The PNG is shipped to /usr/share/icons/hicolor.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 22:30:00 +0000
+
 meowtrics (0.1.1-1) unstable; urgency=low
 
   * Plasma 6 plasmoid fixes
@@ -10,22 +33,18 @@ meowtrics (0.1.1-1) unstable; urgency=low
       and update the popup sensor list every 5s.
   * Tray icon variation
     - Map (sensor, state) to a wider set of distinct freedesktop icon names
-      (computer, system-run, memory, drive-harddisk, weather-clear,
-      battery-good-charging, dialog-warning, ...) so the tray icon visibly
-      changes between sensor states. True emoji rendering still planned for
-      v0.2.
+      so the tray icon visibly changes between sensor states.
   * Packaging
     - Build .deb installs the logo to hicolor at 512x512.
     - postinst refreshes the icon cache and runs kbuildsycoca6 so the widget
       shows up in the chooser without re-login.
+    - postrm purge clears per-user state in ~/.config/meowtrics and
+      ~/.cache/meowtrics for every real user on the system.
 
  -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 19:00:00 +0000
 
 meowtrics (0.1.0-1) unstable; urgency=low
 
   * Initial release.
-    - Daemon that reads CPU and renders state through a tray emoji.
-    - Foundation for the wider sensor lineup, KDE plasmoid frontend,
-      and weighted message database.
 
  -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 14:00:00 +0000

@@ -1,9 +1,9 @@
 // The popup shown when the user clicks the panel emoji: large emoji on top,
 // a one-line headline, and a per-sensor list with state and last value.
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import org.kde.plasma.components 3.0 as PlasmaComponents
+import QtQuick
+import QtQuick.Layouts
+import org.kde.plasma.components as PC3
 import org.kde.plasma.core as PlasmaCore
 
 ColumnLayout {
@@ -25,7 +25,7 @@ ColumnLayout {
         renderType: Text.NativeRendering
     }
 
-    PlasmaComponents.Label {
+    PC3.Label {
         Layout.alignment: Qt.AlignHCenter
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
@@ -50,10 +50,10 @@ ColumnLayout {
         delegate: RowLayout {
             width: ListView.view.width
             spacing: 8
-            PlasmaComponents.Label { text: modelData.emoji || "" ; font.pixelSize: 18; font.family: "Noto Color Emoji" }
-            PlasmaComponents.Label { text: modelData.sensor || ""; Layout.fillWidth: true }
-            PlasmaComponents.Label { text: modelData.state || "" ; opacity: 0.7 }
-            PlasmaComponents.Label {
+            PC3.Label { text: modelData.emoji || ""; font.pixelSize: 18; font.family: "Noto Color Emoji" }
+            PC3.Label { text: modelData.sensor || ""; Layout.fillWidth: true }
+            PC3.Label { text: modelData.state || ""; opacity: 0.7 }
+            PC3.Label {
                 text: modelData.value !== undefined ? Number(modelData.value).toFixed(1) : ""
                 opacity: 0.5
                 font.family: "monospace"
@@ -61,7 +61,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents.Label {
+    PC3.Label {
         Layout.alignment: Qt.AlignHCenter
         text: "provided AS IS, no warranty"
         opacity: 0.4

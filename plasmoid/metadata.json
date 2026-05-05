@@ -15,7 +15,7 @@
         "ServiceTypes": [
             "Plasma/Applet"
         ],
-        "Version": "0.1.1",
+        "Version": "0.1.2",
         "Website": "https://ra-yavuz.github.io/meowtrics/"
     },
     "X-Plasma-API-Minimum-Version": "6.0",

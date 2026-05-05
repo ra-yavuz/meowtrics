@@ -5,3 +5,4 @@
 **/*.rs.bk
 .idea/
 .vscode/
+/CLAUDE.md
