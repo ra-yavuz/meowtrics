@@ -1,3 +1,16 @@
+meowtrics (0.1.3-1) unstable; urgency=low
+
+  * Fatal panic on startup
+    - The ksni Tray trait methods are sync, called from inside ksni's tokio
+      runtime. v0.1.2 used tokio::sync::RwLock and called blocking_read()
+      from those methods, which tokio refuses with "Cannot block the current
+      thread from within a runtime". The daemon SIGABRT'd on every startup,
+      crash-looping forever and breaking the SNI tray icon.
+    - Switched the tray-state lock to std::sync::RwLock. The state is one
+      small struct updated once per tick, no real contention.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Tue, 05 May 2026 22:45:00 +0000
+
 meowtrics (0.1.2-1) unstable; urgency=low
 
   * Daemon never started after install

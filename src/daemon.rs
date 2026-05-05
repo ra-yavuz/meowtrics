@@ -1,9 +1,8 @@
 //! Daemon main loop: tick sensors, advance state machines, push to tray frontend.
 
 use anyhow::Result;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 use crate::frontend::sni::{render_state, spawn as spawn_sni, TrayState};
@@ -48,7 +47,7 @@ pub async fn run() -> Result<()> {
             );
         }
         let new_tray = render_state(&snap, &db);
-        *tray_state.write().await = new_tray;
+        *tray_state.write().expect("tray state lock poisoned") = new_tray;
         sleep(Duration::from_secs(TICK_SECS)).await;
     }
 }

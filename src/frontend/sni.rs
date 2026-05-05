@@ -12,10 +12,14 @@
 //! v0.2 will switch to IconPixmap rendering once we ship a bundled emoji
 //! pack (PNG sprites at panel sizes).
 
+// ksni's Tray trait methods are sync (called from inside ksni's async event
+// loop). We must not block on a tokio::sync lock here or the runtime panics
+// with "Cannot block the current thread from within a runtime". Use a plain
+// std::sync::RwLock; contention is none-to-trivial (one writer per tick,
+// readers only for the SNI re-render).
 use anyhow::Result;
 use ksni::{Icon, MenuItem, Tray, TrayMethods};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 use crate::state::StableState;
 
@@ -36,7 +40,7 @@ impl Tray for MeowtricsTray {
     }
 
     fn title(&self) -> String {
-        let g = self.state.blocking_read();
+        let g = self.state.read().expect("tray state lock poisoned");
         if g.title.is_empty() {
             "meowtrics".to_string()
         } else {
@@ -45,7 +49,7 @@ impl Tray for MeowtricsTray {
     }
 
     fn icon_name(&self) -> String {
-        let g = self.state.blocking_read();
+        let g = self.state.read().expect("tray state lock poisoned");
         if g.icon_name.is_empty() {
             "face-smile".to_string()
         } else {
@@ -58,7 +62,7 @@ impl Tray for MeowtricsTray {
     }
 
     fn tool_tip(&self) -> ksni::ToolTip {
-        let g = self.state.blocking_read();
+        let g = self.state.read().expect("tray state lock poisoned");
         ksni::ToolTip {
             icon_name: g.icon_name.clone(),
             icon_pixmap: Vec::new(),
