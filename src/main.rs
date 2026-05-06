@@ -13,10 +13,14 @@ mod state;
 #[command(
     name = "meowtrics",
     version,
-    about = "Animated emoji system tray pet that reacts to your machine's vital signs",
-    long_about = "meowtrics shows a small animated emoji in your system tray (StatusNotifierItem) \
-                  that morphs based on live sensor readings (CPU, RAM, thermal, battery, disk, network, \
-                  and more). On hover it gossips about your machine using a weighted message database.\n\n\
+    about = "Animated cat in your KDE Plasma panel that reacts to your machine's vital signs",
+    long_about = "meowtrics is a daemon that reads your system's vital signs (CPU, RAM, thermal, \
+                  battery, disk, network, and more) and an animated Oneko cat panel widget that \
+                  reacts to them. The daemon emits classified state as JSON via `meowtrics tray-state`; \
+                  the KDE plasmoid widget consumes it and renders the cat.\n\n\
+                  By default the daemon runs headless (no system tray icon). Pass --tray to ALSO \
+                  register a StatusNotifierItem so the cat shows up in the system tray on desktops \
+                  that don't have a plasmoid surface (GNOME, XFCE, etc).\n\n\
                   DISCLAIMER: provided AS IS, without warranty of any kind. The author is not liable for \
                   any damage to hardware, data, or system. By installing and running this software you \
                   accept full responsibility. See /usr/share/doc/meowtrics/README.md for full text."
@@ -28,8 +32,16 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
-    /// Run the tray daemon in the foreground (default if no subcommand given).
-    Daemon,
+    /// Run the daemon in the foreground (default if no subcommand given).
+    /// Headless by default; pass --tray to also register a system tray icon.
+    Daemon {
+        /// Also register a StatusNotifierItem (system tray) icon.
+        /// Off by default: the KDE plasmoid panel widget is the recommended UI.
+        /// Use --tray on desktops without a plasmoid surface (GNOME with
+        /// AppIndicator, XFCE, Cinnamon, Sway+waybar, etc).
+        #[arg(long)]
+        tray: bool,
+    },
     /// Print current sensor states and the active emoji to stdout.
     Status {
         /// Compact one-line output suitable for status bars (polybar, i3blocks).
@@ -57,8 +69,8 @@ async fn main() -> Result<()> {
         .init();
 
     let cli = Cli::parse();
-    match cli.cmd.unwrap_or(Cmd::Daemon) {
-        Cmd::Daemon => daemon::run().await,
+    match cli.cmd.unwrap_or(Cmd::Daemon { tray: false }) {
+        Cmd::Daemon { tray } => daemon::run(tray).await,
         Cmd::Status { short } => daemon::print_status(short).await,
         Cmd::Json => daemon::print_json().await,
         Cmd::TrayState => daemon::print_tray_state().await,

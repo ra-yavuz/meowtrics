@@ -1,11 +1,19 @@
 [Unit]
-Description=meowtrics tray pet daemon
+Description=meowtrics sensor daemon
 Documentation=https://github.com/ra-yavuz/meowtrics
 PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
 Type=simple
+# Headless by default. The KDE plasmoid panel widget reads `meowtrics
+# tray-state` to drive the cat. To ALSO register a system tray icon
+# (e.g. on GNOME or XFCE without a panel widget surface), override the
+# unit and pass --tray:
+#   systemctl --user edit meowtrics.service
+#   [Service]
+#   ExecStart=
+#   ExecStart=/usr/bin/meowtrics daemon --tray
 ExecStart=/usr/bin/meowtrics daemon
 Restart=on-failure
 RestartSec=5

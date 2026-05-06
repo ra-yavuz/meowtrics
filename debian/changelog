@@ -1,3 +1,21 @@
+meowtrics (0.2.4-1) unstable; urgency=low
+
+  * SNI tray icon is now opt-in (was opt-out)
+    - The default UX is the KDE plasmoid panel widget. The daemon no
+      longer auto-registers a StatusNotifierItem in the system tray.
+    - To also register an SNI tray icon (useful on GNOME with
+      AppIndicator, XFCE, Cinnamon, Sway+waybar, etc), override the
+      systemd unit and add `--tray`:
+        systemctl --user edit meowtrics.service
+        [Service]
+        ExecStart=
+        ExecStart=/usr/bin/meowtrics daemon --tray
+    - Existing v0.2.3 installs that had the unwanted tray icon: after
+      this upgrade the daemon restarts headless and the speech-bubble
+      placeholder in your system tray will vanish.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 10:30:00 +0000
+
 meowtrics (0.2.3-1) unstable; urgency=low
 
   * Fix plasmoid metadata so Plasma 6 loads our compactRepresentation

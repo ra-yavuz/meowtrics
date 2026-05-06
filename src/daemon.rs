@@ -23,7 +23,7 @@ use crate::state::StateMachine;
 const TICK_SECS: u64 = 5;
 const FRAME_MS: u64 = 250;
 
-pub async fn run() -> Result<()> {
+pub async fn run(enable_tray: bool) -> Result<()> {
     tracing::info!("meowtrics v{} starting", env!("CARGO_PKG_VERSION"));
     println!(
         "meowtrics v{}: provided AS IS, without warranty of any kind. By running this software you accept full responsibility. See README for full disclaimer.",
@@ -40,7 +40,7 @@ pub async fn run() -> Result<()> {
 
     let sprites = Arc::new(SpriteLibrary::load());
     if sprites.is_empty() {
-        tracing::info!("running without sprite animation; SNI will use themed icon names");
+        tracing::info!("running without sprite animation; SNI fallback will use themed icon names");
     } else {
         tracing::info!(
             "sprite library loaded: {} animations",
@@ -49,24 +49,36 @@ pub async fn run() -> Result<()> {
     }
 
     let tray_state = Arc::new(RwLock::new(TrayState::default()));
-    let tray_handle = match spawn_sni(tray_state.clone(), sprites.clone()).await {
-        Ok(h) => Some(h),
-        Err(e) => {
-            tracing::warn!("could not register SNI tray icon: {e:#}; continuing in headless mode");
-            None
-        }
-    };
 
-    // Spawn the frame-advance loop. It only does work if the SNI tray is up.
-    if let Some(handle) = tray_handle.clone() {
-        let sprites_for_anim = sprites.clone();
-        let state_for_anim = tray_state.clone();
-        tokio::spawn(async move {
-            loop {
-                advance_frame(&handle, &sprites_for_anim, &state_for_anim).await;
-                sleep(Duration::from_millis(FRAME_MS)).await;
+    // SNI tray icon is opt-in via --tray. The default UX is the KDE plasmoid
+    // panel widget, which talks to the daemon via `meowtrics tray-state`.
+    // Users on desktops without a plasmoid surface can pass --tray to ALSO
+    // register a StatusNotifierItem.
+    if enable_tray {
+        let tray_handle = match spawn_sni(tray_state.clone(), sprites.clone()).await {
+            Ok(h) => {
+                tracing::info!("SNI tray icon registered (--tray)");
+                Some(h)
             }
-        });
+            Err(e) => {
+                tracing::warn!("could not register SNI tray icon: {e:#}");
+                None
+            }
+        };
+        if let Some(handle) = tray_handle.clone() {
+            let sprites_for_anim = sprites.clone();
+            let state_for_anim = tray_state.clone();
+            tokio::spawn(async move {
+                loop {
+                    advance_frame(&handle, &sprites_for_anim, &state_for_anim).await;
+                    sleep(Duration::from_millis(FRAME_MS)).await;
+                }
+            });
+        }
+    } else {
+        tracing::info!(
+            "headless mode (no system tray icon). The KDE plasmoid panel widget reads `meowtrics tray-state` directly. Pass --tray to also register an SNI icon."
+        );
     }
 
     let mut sm = StateMachine::new();
