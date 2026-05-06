@@ -7,6 +7,7 @@
 // pattern used by hydra-llm and most stock Plasma 6 plasmoids.
 
 import QtQuick
+import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
@@ -38,32 +39,35 @@ MouseArea {
     hoverEnabled: true
     onClicked: Plasmoid.expanded = !Plasmoid.expanded
 
-    Item {
-        id: spriteBox
-        anchors.centerIn: parent
-        width:  Math.min(parent.width, parent.height)
-        height: width
+    // Tell the panel host we want as much room as it can give us, like
+    // app-launcher / window-tasks plasmoids do. Without this the host
+    // sticks us in a small square.
+    Layout.fillWidth:  true
+    Layout.fillHeight: true
+    Layout.minimumWidth:  Kirigami.Units.iconSizes.small
+    Layout.minimumHeight: Kirigami.Units.iconSizes.small
 
-        Image {
-            id: sprite
-            anchors.fill: parent
-            source: {
-                const a = compact.animations[compact.animation] || compact.animations["sit_calm"];
-                const frame = a.frames[compact.frameIndex % a.frames.length];
-                return compact.spriteDir + frame + ".png";
-            }
-            // Pixel art: never smooth.
-            smooth: false
-            mipmap: false
-            fillMode: Image.PreserveAspectFit
-            visible: false  // we render through ColorOverlay below
+    Image {
+        id: sprite
+        anchors.fill: parent
+        source: {
+            const a = compact.animations[compact.animation] || compact.animations["sit_calm"];
+            const frame = a.frames[compact.frameIndex % a.frames.length];
+            return compact.spriteDir + frame + ".png";
         }
+        // Pixel art: never smooth.
+        smooth: false
+        mipmap: false
+        // PreserveAspectFit keeps the cat square; on a wide panel slot
+        // there's empty space left/right of the cat (which is fine).
+        fillMode: Image.PreserveAspectFit
+        visible: false  // we render through ColorOverlay below
+    }
 
-        ColorOverlay {
-            anchors.fill: sprite
-            source: sprite
-            color: Kirigami.Theme.textColor
-        }
+    ColorOverlay {
+        anchors.fill: sprite
+        source: sprite
+        color: Kirigami.Theme.textColor
     }
 
     Timer {

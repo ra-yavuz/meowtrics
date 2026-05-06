@@ -61,7 +61,12 @@ enum Cmd {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    // CRITICAL: log to stderr, not stdout. The CLI's stdout is consumed
+    // by the plasmoid (`meowtrics tray-state`) and by status bars
+    // (`meowtrics json`); polluting it with INFO log lines breaks JSON
+    // parsing on the consumer side.
     tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )

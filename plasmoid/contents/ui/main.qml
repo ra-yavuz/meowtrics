@@ -25,8 +25,14 @@ PlasmoidItem {
     property var sensors: []
 
     Plasmoid.icon: "meowtrics"
-    toolTipMainText: "meowtrics"
-    toolTipSubText: root.headline
+
+    // Custom tooltip: a big animated cat + headline + sensor table. Set
+    // toolTipItem on PlasmoidItem to override the default text-only tooltip.
+    toolTipItem: ToolTipContent {
+        animation: root.activeAnimation
+        headline: root.headline
+        sensors: root.sensors
+    }
 
     compactRepresentation: CompactRepresentation {
         animation: root.activeAnimation
@@ -46,8 +52,16 @@ PlasmoidItem {
             disconnectSource(sourceName);
             const stdout = data["stdout"];
             if (!stdout) return;
+            // Robustness: extract the last `{...}` block from stdout in case
+            // the daemon emits any leading log output (older versions did).
+            // Modern v0.2.6+ daemons log to stderr, but this keeps us
+            // forward-compatible.
+            const start = stdout.lastIndexOf("{");
+            const end   = stdout.lastIndexOf("}");
+            if (start < 0 || end < 0 || end < start) return;
+            const json = stdout.substring(start, end + 1);
             try {
-                const obj = JSON.parse(stdout);
+                const obj = JSON.parse(json);
                 if (obj.animation) root.activeAnimation = obj.animation;
                 if (obj.headline)  root.headline       = obj.headline;
                 if (obj.sensors)   root.sensors        = obj.sensors;
