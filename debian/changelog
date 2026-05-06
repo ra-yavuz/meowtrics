@@ -1,3 +1,19 @@
+meowtrics (0.2.5-1) unstable; urgency=low
+
+  * Fix panel widget size: now fills the panel slot (like Chrome / Konsole)
+    - The compact representation was an Item with hardcoded
+      implicitWidth/Height of iconSizes.medium (~22 px) and 2 px margins,
+      so the cat showed up as a tiny dot in a wide-open panel.
+    - Switched to the canonical Plasma 6 pattern (mirrors hydra-llm,
+      kdeconnect, systemmonitor): outer MouseArea anchors.fills parent
+      so the panel host expands the rep to the full slot, inner sprite
+      box is a square sized to min(parent.width, parent.height).
+    - The cat now uses the same panel real estate as any application
+      tray icon. On thicker panels it scales up; on thinner panels it
+      shrinks to fit.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 11:00:00 +0000
+
 meowtrics (0.2.4-1) unstable; urgency=low
 
   * SNI tray icon is now opt-in (was opt-out)

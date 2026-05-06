@@ -1,8 +1,10 @@
-// What's shown in the panel slot: the active Oneko sprite at panel size,
-// tinted to the panel's foreground colour.
+// What's shown in the panel slot: the active Oneko sprite at full panel
+// size, tinted to the panel's foreground colour.
 //
-// Animation table mirrors SpriteLibrary::load() in src/sprites.rs so the
-// panel widget and the SNI tray icon stay in sync.
+// Sizing pattern: outer MouseArea fills whatever the panel host gives us,
+// inner sprite is a square the size of the smaller axis (so a horizontal
+// panel uses the height, a vertical panel uses the width). Mirrors the
+// pattern used by hydra-llm and most stock Plasma 6 plasmoids.
 
 import QtQuick
 import Qt5Compat.GraphicalEffects
@@ -10,7 +12,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 
-Item {
+MouseArea {
     id: compact
 
     // Animation name set by main.qml from the daemon's JSON output.
@@ -32,31 +34,36 @@ Item {
     property int frameIndex: 0
     property string lastAnimation: ""
 
-    implicitWidth: PlasmaCore.Units.iconSizes.medium
-    implicitHeight: PlasmaCore.Units.iconSizes.medium
+    acceptedButtons: Qt.LeftButton
+    hoverEnabled: true
+    onClicked: Plasmoid.expanded = !Plasmoid.expanded
 
-    Image {
-        id: sprite
-        anchors.fill: parent
-        anchors.margins: 2
-        source: {
-            const a = compact.animations[compact.animation] || compact.animations["sit_calm"];
-            const frame = a.frames[compact.frameIndex % a.frames.length];
-            return compact.spriteDir + frame + ".png";
+    Item {
+        id: spriteBox
+        anchors.centerIn: parent
+        width:  Math.min(parent.width, parent.height)
+        height: width
+
+        Image {
+            id: sprite
+            anchors.fill: parent
+            source: {
+                const a = compact.animations[compact.animation] || compact.animations["sit_calm"];
+                const frame = a.frames[compact.frameIndex % a.frames.length];
+                return compact.spriteDir + frame + ".png";
+            }
+            // Pixel art: never smooth.
+            smooth: false
+            mipmap: false
+            fillMode: Image.PreserveAspectFit
+            visible: false  // we render through ColorOverlay below
         }
-        // Pixel art: never smooth.
-        smooth: false
-        mipmap: false
-        fillMode: Image.PreserveAspectFit
-        visible: false  // hidden; we render through ColorOverlay below
-    }
 
-    ColorOverlay {
-        anchors.fill: sprite
-        source: sprite
-        // Use Kirigami's text colour, which maps to the panel theme's
-        // foreground; reads on both Breeze Light and Breeze Dark.
-        color: Kirigami.Theme.textColor
+        ColorOverlay {
+            anchors.fill: sprite
+            source: sprite
+            color: Kirigami.Theme.textColor
+        }
     }
 
     Timer {
@@ -78,11 +85,5 @@ Item {
             lastAnimation = animation;
             frameIndex = 0;
         }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton
-        onClicked: Plasmoid.expanded = !Plasmoid.expanded
     }
 }
