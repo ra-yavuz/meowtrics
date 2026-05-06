@@ -23,6 +23,13 @@ use crate::state::StateMachine;
 const TICK_SECS: u64 = 5;
 const FRAME_MS: u64 = 250;
 
+/// How long we keep showing the same headline for the same (sensor, state)
+/// before re-rolling. The plasmoid calls `meowtrics tray-state` every 5s;
+/// without this the headline flickers between weighted-random picks every
+/// tick, which is jarring on a busy machine. 5 minutes feels right: long
+/// enough to read and absorb, short enough that you do see variety.
+const HEADLINE_HOLD_SECS: u64 = 300;
+
 pub async fn run(enable_tray: bool) -> Result<()> {
     tracing::info!("meowtrics v{} starting", env!("CARGO_PKG_VERSION"));
     println!(
@@ -153,6 +160,11 @@ pub async fn print_json() -> Result<()> {
 ///
 /// The plasmoid is a dumb renderer: it picks frames from `animation`,
 /// shows `headline` in the popup, and tabulates `sensors` in the body.
+///
+/// The plasmoid calls this every 5s. To avoid the headline rotating on
+/// every call (jarring on a busy machine), we cache the picked headline
+/// per (sensor, state) for HEADLINE_HOLD_SECS at ~/.cache/meowtrics/
+/// tray-state.cache. New picks happen on state change OR every N minutes.
 pub async fn print_tray_state() -> Result<()> {
     use serde_json::json;
     let db = Database::load().ok();
@@ -180,10 +192,19 @@ pub async fn print_tray_state() -> Result<()> {
 
     let (animation, headline) = match active {
         Some(a) => {
-            let h = db
-                .as_ref()
-                .and_then(|d| d.render_message(a))
-                .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state));
+            let cache_key = format!("{}:{}", a.sensor.as_str(), a.state);
+            let cached = read_headline_cache().and_then(|c| c.get(&cache_key).cloned());
+            let h = match cached {
+                Some(entry) if entry.is_fresh() => entry.headline,
+                _ => {
+                    let new_h = db
+                        .as_ref()
+                        .and_then(|d| d.render_message(a))
+                        .unwrap_or_else(|| format!("{} {}", a.sensor.as_str(), a.state));
+                    write_headline_cache_entry(&cache_key, &new_h);
+                    new_h
+                }
+            };
             (
                 crate::sprites::animation_for(a.sensor.as_str(), a.state).to_string(),
                 h,
@@ -225,4 +246,67 @@ pub async fn print_sensors() -> Result<()> {
         println!("{}", id.as_str());
     }
     Ok(())
+}
+
+// ---------------------------------------------------------------------
+// Headline cache: persists the last-picked random headline per
+// (sensor, state) at ~/.cache/meowtrics/tray-state.cache so that the
+// plasmoid's 5-second tray-state polling doesn't reroll the headline
+// every tick.
+// ---------------------------------------------------------------------
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+struct HeadlineEntry {
+    headline: String,
+    /// Unix timestamp when this entry was written.
+    picked_at: u64,
+}
+
+impl HeadlineEntry {
+    fn is_fresh(&self) -> bool {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        now.saturating_sub(self.picked_at) < HEADLINE_HOLD_SECS
+    }
+}
+
+fn cache_path() -> Option<std::path::PathBuf> {
+    directories::ProjectDirs::from("io", "ra-yavuz", "meowtrics").map(|dirs| {
+        let p = dirs.cache_dir().to_path_buf();
+        p.join("tray-state.cache")
+    })
+}
+
+fn read_headline_cache() -> Option<std::collections::HashMap<String, HeadlineEntry>> {
+    let path = cache_path()?;
+    let text = std::fs::read_to_string(&path).ok()?;
+    serde_json::from_str(&text).ok()
+}
+
+fn write_headline_cache_entry(key: &str, headline: &str) {
+    let Some(path) = cache_path() else {
+        return;
+    };
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let mut map = read_headline_cache().unwrap_or_default();
+    map.insert(
+        key.to_string(),
+        HeadlineEntry {
+            headline: headline.to_string(),
+            picked_at: now,
+        },
+    );
+    // Keep the cache small: prune entries older than 6h on every write.
+    map.retain(|_, e| now.saturating_sub(e.picked_at) < 6 * 3600);
+    if let Ok(text) = serde_json::to_string(&map) {
+        let _ = std::fs::write(&path, text);
+    }
 }

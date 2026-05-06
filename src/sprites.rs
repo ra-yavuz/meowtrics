@@ -158,23 +158,44 @@ impl SpriteLibrary {
     }
 }
 
-/// Pick the right animation name for a given (sensor, state) pair. Returns
-/// None if the sprite library has nothing for it (caller falls back).
+/// Pick the right animation name for a given (sensor, state) pair. Different
+/// sensors get different animations even at the same severity tier, so the
+/// cat doesn't get stuck on one animation when the same severity persists
+/// across many sensors on a busy laptop.
+///
+/// Returns the animation name; caller falls back to "sit_calm" if the
+/// sprite library doesn't have it loaded.
 pub fn animation_for(sensor: &str, state: &str) -> &'static str {
     match (sensor, state) {
-        // Severity overrides sensor.
+        // Critical: panic mode no matter what.
         (_, "critical") => "run_panic",
+
+        // High-severity by sensor: each tells a different story.
+        ("cpu", "high") => "scratch",      // cpu working hard
+        ("ram", "high") => "wash_face",    // anxious grooming
+        ("swap", "high") => "run_panic",   // swap thrashing IS bad
+        ("thermal", "hot") => "wash_face", // cat sweating
+        ("disk", "high") => "scratch",     // disk grinding
+        ("disk", "filling") => "scratch",
+        ("load", "high") => "run_panic",   // queue overflowing
+        ("battery", "low") => "sit_alert", // anxious watch
         (_, "high") | (_, "hot") | (_, "low") => "wash_face",
-        (_, "filling") | (_, "warm") | (_, "busy") => "sit_alert",
 
-        ("cpu", "idle") => "sleep",
+        // Mid-severity: more variety here too.
+        ("cpu", "busy") => "scratch",
+        ("load", "busy") => "scratch",
+        (_, "warm") | (_, "filling") | (_, "busy") => "sit_alert",
+
+        // Idle / calm states.
+        ("battery", "charging") => "sit_calm",
+        ("battery", "full") => "sit_calm",
+        ("battery", "discharging") => "sit_calm",
+
+        ("cpu", "idle") | ("cpu", "normal") => "sleep",
         ("ram", "idle") | ("swap", "idle") => "sleep",
-        ("thermal", "cool") | ("thermal", "idle") => "sleep",
-
-        ("battery", "full") | ("battery", "charging") => "sit_calm",
-        ("battery", "discharging") => "sit_alert",
-
+        ("thermal", "cool") | ("thermal", "idle") | ("thermal", "normal") => "sleep",
         ("uptime", "ancient") | ("uptime", "long") => "sleep",
+
         ("uptime", "fresh") => "sit_alert",
 
         // Default: calm sit.

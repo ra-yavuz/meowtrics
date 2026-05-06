@@ -1,3 +1,30 @@
+meowtrics (0.2.10-1) unstable; urgency=low
+
+  * Headline no longer rotates every 5 s
+    - The plasmoid calls `meowtrics tray-state` every 5 s; previously
+      the daemon returned a fresh weighted-random headline each call,
+      which on a busy machine made the tooltip flicker between lines
+      far too fast to read. Now we cache the picked headline per
+      (sensor, state) at ~/.cache/meowtrics/tray-state.cache for 5
+      minutes; new picks happen on state change, or after the hold
+      window expires.
+  * Animation diversity per sensor
+    - Previously `(_, high) | (_, hot) | (_, low)` all mapped to the
+      `wash_face` animation, so on a busy laptop the cat was permanently
+      grooming. Now each high-severity sensor maps to a different
+      animation that fits its character:
+        cpu high      -> scratch (working hard)
+        ram high      -> wash_face (anxious grooming)
+        swap high     -> run_panic (thrashing IS bad)
+        thermal hot   -> wash_face (sweating)
+        disk high/filling -> scratch (grinding)
+        load high     -> run_panic (queue overflow)
+        battery low   -> sit_alert (worried watch)
+    - Mid-severity: cpu/load busy -> scratch, others -> sit_alert.
+    - Idle/calm/sleep tiers unchanged.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 13:15:00 +0000
+
 meowtrics (0.2.9-1) unstable; urgency=low
 
   * Fix the actual JSON parse bug
