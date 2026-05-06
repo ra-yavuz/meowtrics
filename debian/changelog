@@ -1,3 +1,21 @@
+meowtrics (0.2.3-1) unstable; urgency=low
+
+  * Fix plasmoid metadata so Plasma 6 loads our compactRepresentation
+    - Plasma was logging:
+        KPackageStructure of KPluginMetaData(pluginId:"com.ra-yavuz.meowtrics")
+        does not match requested format "Plasma/Applet"
+      and as a result fell back to a generic icon (the user reported a
+      sun shape) instead of running our QML.
+    - Added top-level "KPackageStructure": "Plasma/Applet".
+    - Removed the deprecated "ServiceTypes": ["Plasma/Applet"] (Plasma 6
+      ignores it; KPackageStructure replaces it).
+    - "X-Plasma-NotificationArea" changed from string "true" to boolean
+      true to match the schema.
+    - Verified shape against working hydra-llm metadata.json on the same
+      system.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 08:30:00 +0000
+
 meowtrics (0.2.2-1) unstable; urgency=low
 
   * Plasmoid widget renders Oneko sprites

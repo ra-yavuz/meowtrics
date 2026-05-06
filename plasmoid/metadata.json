@@ -1,4 +1,5 @@
 {
+    "KPackageStructure": "Plasma/Applet",
     "KPlugin": {
         "Authors": [
             {
@@ -7,17 +8,14 @@
             }
         ],
         "Category": "System Information",
-        "Description": "Animated emoji tray pet that reacts to your machine's vital signs. Provided AS IS, without warranty.",
+        "Description": "Animated Oneko cat in your panel that reacts to your machine's vital signs. Provided AS IS, without warranty.",
         "Icon": "meowtrics",
         "Id": "com.ra-yavuz.meowtrics",
         "License": "MIT",
         "Name": "meowtrics",
-        "ServiceTypes": [
-            "Plasma/Applet"
-        ],
-        "Version": "0.2.2",
+        "Version": "0.2.3",
         "Website": "https://ra-yavuz.github.io/meowtrics/"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
-    "X-Plasma-NotificationArea": "true"
+    "X-Plasma-NotificationArea": true
 }
