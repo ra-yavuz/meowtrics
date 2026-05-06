@@ -51,14 +51,27 @@ PlasmoidItem {
         onNewData: function (sourceName, data) {
             disconnectSource(sourceName);
             const stdout = data["stdout"];
-            if (!stdout) return;
+            const stderr = data["stderr"];
+            const exit   = data["exit code"];
+            if (exit !== undefined && exit !== 0) {
+                console.warn("meowtrics: tray-state exited", exit, "stderr=", stderr);
+                root.headline = "meowtrics daemon failed (exit " + exit + ")";
+                return;
+            }
+            if (!stdout) {
+                console.warn("meowtrics: tray-state stdout empty; stderr=", stderr);
+                return;
+            }
             // Robustness: extract the last `{...}` block from stdout in case
-            // the daemon emits any leading log output (older versions did).
-            // Modern v0.2.6+ daemons log to stderr, but this keeps us
-            // forward-compatible.
+            // anything else lands in there (older daemons logged to stdout,
+            // some Plasma5Support builds merge stderr into stdout, etc).
             const start = stdout.lastIndexOf("{");
             const end   = stdout.lastIndexOf("}");
-            if (start < 0 || end < 0 || end < start) return;
+            if (start < 0 || end < 0 || end < start) {
+                console.warn("meowtrics: no JSON found in stdout=", stdout);
+                root.headline = "meowtrics: empty tray-state output";
+                return;
+            }
             const json = stdout.substring(start, end + 1);
             try {
                 const obj = JSON.parse(json);
@@ -66,10 +79,15 @@ PlasmoidItem {
                 if (obj.headline)  root.headline       = obj.headline;
                 if (obj.sensors)   root.sensors        = obj.sensors;
             } catch (e) {
-                root.headline = "could not parse meowtrics tray-state";
+                console.warn("meowtrics: JSON.parse failed:", e, "input=", json);
+                root.headline = "meowtrics: JSON parse failed";
             }
         }
-        function fetch() { connectSource("meowtrics tray-state"); }
+        // Redirect stderr to /dev/null at the shell level so any log noise
+        // the daemon emits (or that wraps things like sudo/locale warnings)
+        // never lands in the same data["stdout"] field that some
+        // Plasma5Support executable engine builds merge.
+        function fetch() { connectSource("meowtrics tray-state 2>/dev/null"); }
     }
 
     Timer {

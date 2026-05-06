@@ -1,3 +1,20 @@
+meowtrics (0.2.8-1) unstable; urgency=low
+
+  * Diagnose & defensively fix tooltip JSON parse failure
+    - User reports v0.2.6/0.2.7 still showing "could not parse meowtrics
+      tray-state" tooltip, despite the daemon emitting clean JSON to
+      stdout (verified via direct shell invocation).
+    - Belt-and-suspenders fix at the QML level: connectSource uses
+      'meowtrics tray-state 2>/dev/null' so any stderr (e.g. log lines)
+      can never land in data["stdout"] regardless of which Plasma5Support
+      executable-engine build the user has.
+    - Replaced the single "could not parse" error with three distinct,
+      diagnosable messages: daemon exit code != 0, empty stdout, or
+      JSON.parse failure. console.warn calls give plasmashell journal
+      entries for further debugging.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 12:30:00 +0000
+
 meowtrics (0.2.7-1) unstable; urgency=low
 
   * Drop Layout.fillWidth/fillHeight from CompactRepresentation
