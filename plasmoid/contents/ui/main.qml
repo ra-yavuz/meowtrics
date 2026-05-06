@@ -62,10 +62,10 @@ PlasmoidItem {
                 console.warn("meowtrics: tray-state stdout empty; stderr=", stderr);
                 return;
             }
-            // Robustness: extract the last `{...}` block from stdout in case
-            // anything else lands in there (older daemons logged to stdout,
-            // some Plasma5Support builds merge stderr into stdout, etc).
-            const start = stdout.lastIndexOf("{");
+            // Robustness: take everything from the FIRST `{` to the LAST `}`.
+            // The previous version used lastIndexOf("{") which captured only
+            // the last sensor sub-object, breaking the JSON.
+            const start = stdout.indexOf("{");
             const end   = stdout.lastIndexOf("}");
             if (start < 0 || end < 0 || end < start) {
                 console.warn("meowtrics: no JSON found in stdout=", stdout);

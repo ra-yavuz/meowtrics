@@ -1,3 +1,19 @@
+meowtrics (0.2.9-1) unstable; urgency=low
+
+  * Fix the actual JSON parse bug
+    - The "defensive" parser added in v0.2.6 used `lastIndexOf("{")`
+      which captured only the LAST sensor sub-object inside the array,
+      breaking the JSON. Switched to `indexOf("{")` so we take from the
+      first `{` to the last `}`. Daemon stdout was always clean; the
+      bug was in our extraction.
+    - This is what was producing the user-visible "could not parse
+      meowtrics tray-state" / "JSON parse failed" tooltip.
+  * Fix FullRepresentation popup TypeError
+    - `PlasmaCore.Units.smallSpacing` is undefined in Plasma 6
+      (Units moved to Kirigami). Switched to `Kirigami.Units.smallSpacing`.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 12:50:00 +0000
+
 meowtrics (0.2.8-1) unstable; urgency=low
 
   * Diagnose & defensively fix tooltip JSON parse failure

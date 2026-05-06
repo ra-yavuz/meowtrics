@@ -10,7 +10,7 @@ import org.kde.kirigami as Kirigami
 
 ColumnLayout {
     id: full
-    spacing: PlasmaCore.Units.smallSpacing
+    spacing: Kirigami.Units.smallSpacing
 
     property string animation: "sit_calm"
     property string headline: ""
