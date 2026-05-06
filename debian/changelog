@@ -1,3 +1,15 @@
+meowtrics (0.2.7-1) unstable; urgency=low
+
+  * Drop Layout.fillWidth/fillHeight from CompactRepresentation
+    - The v0.2.6 attempt to "fill the panel slot" only stretched the
+      widget horizontally, growing the click target without making the
+      cat any bigger vertically. Useless and visually awkward (the cat
+      sat in a wide click area).
+    - Cat size is bounded by panel thickness; users who want a bigger
+      cat should adjust their panel height in the panel settings.
+
+ -- Ramazan Yavuz <yavuzramazan1994@gmail.com>  Wed, 06 May 2026 12:15:00 +0000
+
 meowtrics (0.2.6-1) unstable; urgency=low
 
   * Fix "could not parse meowtrics tray-state" tooltip

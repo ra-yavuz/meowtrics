@@ -7,7 +7,6 @@
 // pattern used by hydra-llm and most stock Plasma 6 plasmoids.
 
 import QtQuick
-import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
@@ -38,14 +37,6 @@ MouseArea {
     acceptedButtons: Qt.LeftButton
     hoverEnabled: true
     onClicked: Plasmoid.expanded = !Plasmoid.expanded
-
-    // Tell the panel host we want as much room as it can give us, like
-    // app-launcher / window-tasks plasmoids do. Without this the host
-    // sticks us in a small square.
-    Layout.fillWidth:  true
-    Layout.fillHeight: true
-    Layout.minimumWidth:  Kirigami.Units.iconSizes.small
-    Layout.minimumHeight: Kirigami.Units.iconSizes.small
 
     Image {
         id: sprite

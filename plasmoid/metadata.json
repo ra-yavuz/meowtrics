@@ -13,7 +13,7 @@
         "Id": "com.ra-yavuz.meowtrics",
         "License": "MIT",
         "Name": "meowtrics",
-        "Version": "0.2.6",
+        "Version": "0.2.7",
         "Website": "https://ra-yavuz.github.io/meowtrics/"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
