@@ -41,6 +41,8 @@ The KDE Plasma 6 frontend gets a richer popup with sensor breakdowns and weighte
 
 ## Supported environments
 
+Tested on **Ubuntu (Linux only)**. **macOS is not supported**: meowtrics relies on Linux `/proc` and `/sys` interfaces for sensors, and on D-Bus StatusNotifierItem (or KDE Plasma) for the tray icon, none of which exist on Darwin. **WSL2** is partially viable for the JSON-output mode (`meowtrics json` for waybar / polybar consumers running inside the WSL distro), but the tray icon path needs a Linux desktop session, which WSL2 does not provide by default.
+
 | Desktop / WM | How meowtrics shows up | Rich popup? |
 |---|---|---|
 | KDE Plasma 6 (X11/Wayland) | Plasmoid widget in panel | yes, native QML popup |

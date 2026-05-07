@@ -227,6 +227,18 @@
     custom module by waybar, polybar, or i3blocks.
   </p>
 
+  <h2>Platform support</h2>
+  <p>
+    Tested on <strong>Ubuntu (Linux only)</strong>. <strong>macOS is not
+    supported</strong>: meowtrics relies on Linux <code>/proc</code> and
+    <code>/sys</code> interfaces for sensors, and on D-Bus
+    StatusNotifierItem (or KDE Plasma) for the tray icon, none of which
+    exist on Darwin. <strong>WSL2</strong> is partially viable for the
+    JSON-output mode (<code>meowtrics json</code> for waybar / polybar
+    consumers running inside the WSL distro), but the tray icon path needs
+    a Linux desktop session, which WSL2 does not provide by default.
+  </p>
+
   <h2 id="sensors">Sensors (planned for v0.1 .. v0.2)</h2>
   <table class="matrix">
     <tr><th>Sensor</th><th>Source</th><th>Example states</th></tr>
