@@ -79,18 +79,40 @@ meowtrics --help
 
 ## Install via apt repository (recommended for Debian / Ubuntu)
 
+One line. Sets up the signed apt repo if not already added, refreshes the package index, and installs meowtrics. Idempotent, safe to re-run:
+
 ```bash
+sudo bash -c 'set -e; install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://ra-yavuz.github.io/apt/pubkey.gpg -o /etc/apt/keyrings/ra-yavuz.gpg && echo "deb [signed-by=/etc/apt/keyrings/ra-yavuz.gpg] https://ra-yavuz.github.io/apt stable main" > /etc/apt/sources.list.d/ra-yavuz.list && apt update && apt install -y meowtrics'
+systemctl --user enable --now meowtrics
+```
+
+If you already added the `ra-yavuz` apt repo earlier, all you need is:
+
+```bash
+sudo apt update && sudo apt install meowtrics
+```
+
+The `sudo apt update` step is required: without it apt will not see new packages or new versions.
+
+<details><summary>Step by step (manual repo setup)</summary>
+
+```bash
+# 1. Trust the signing key
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://ra-yavuz.github.io/apt/pubkey.gpg \
   | sudo tee /etc/apt/keyrings/ra-yavuz.gpg > /dev/null
 
+# 2. Add the apt source
 echo "deb [signed-by=/etc/apt/keyrings/ra-yavuz.gpg] https://ra-yavuz.github.io/apt stable main" \
   | sudo tee /etc/apt/sources.list.d/ra-yavuz.list
 
+# 3. Refresh the package index, then install
 sudo apt update
 sudo apt install meowtrics
 systemctl --user enable --now meowtrics
 ```
+
+</details>
 
 ## Install single `.deb` from GitHub Releases
 
